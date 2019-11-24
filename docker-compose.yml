@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+
+   sample:
+     build:
+       context: ./
+       args:
+         - application=sample
+         - friendly="Sample API"
+         - github_token=${GITHUB_TOKEN}
+         - build_hash=${HASH:-localbuild_hashmissing}
+         - build_user=${BUILD_USER:-$USER}
+         - build_branch=${BRANCH:-nobranch}
+         - build_number=${BUILD_NUMBER:-1.0.0}
+         - build_group=${BUILD_GROUP:-nogroupspecified}
+     image: chadgrant/sample:${BUILD_NUMBER:-1.0.0}
+     container_name: sample
+     restart: unless-stopped
+     ports:
+       - 5005:8080
+
+   tests:
+     build:
+       context: ./
+       dockerfile: Dockerfile.tests
+       args:
+         - application=apollo_test
+         - github_token=${GITHUB_TOKEN}
+     image: chadgrant/sample_test:${BUILD_NUMBER:-1.0.0}
+     container_name: sample_test
