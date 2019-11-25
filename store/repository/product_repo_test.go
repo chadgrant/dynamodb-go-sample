@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"os"
 	"testing"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
@@ -15,12 +16,18 @@ func TestMockRepository(t *testing.T) {
 }
 
 func TestIntegration(t *testing.T) {
+	if len(os.Getenv("TEST_INTEGRATION")) == 0 {
+		t.Log("Skipping integration tests, TEST_INTEGRATION environment variable not set")
+		return
+	}
 	repo := dynamo.NewProductRepository("http://localhost:8000", "products")
+	repo.DeleteTable()
 	if err := repo.CreateTable(); err != nil {
 		t.Errorf("could not create table %v", err)
 		return
 	}
 	runTests(repo, t)
+
 }
 
 func runTests(repo ProductRepository, t *testing.T) {

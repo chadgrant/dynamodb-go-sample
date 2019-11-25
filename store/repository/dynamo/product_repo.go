@@ -61,6 +61,17 @@ func (r *DynamoDBProductRepository) CreateTable() error {
 	return nil
 }
 
+func (r *DynamoDBProductRepository) DeleteTable() error {
+	input := &dynamodb.DeleteTableInput{TableName: aws.String(r.table)}
+
+	_, err := r.dynamo.DeleteTable(input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *DynamoDBProductRepository) GetAll() ([]*store.Product, error) {
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(r.table),
