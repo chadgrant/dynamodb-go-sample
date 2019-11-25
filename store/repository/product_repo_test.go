@@ -4,13 +4,26 @@ import (
 	"testing"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 	"github.com/google/uuid"
 )
 
 func TestMockRepository(t *testing.T) {
 	repo := mock.NewProductRepository()
+	runTests(repo, t)
+}
 
+func TestIntegration(t *testing.T) {
+	repo := dynamo.NewProductRepository("http://localhost:8000", "products")
+	if err := repo.CreateTable(); err != nil {
+		t.Errorf("could not create table %v", err)
+		return
+	}
+	runTests(repo, t)
+}
+
+func runTests(repo ProductRepository, t *testing.T) {
 	if err := setup(repo); err != nil {
 		t.Fatalf("setup failed %v", err)
 	}
@@ -34,10 +47,6 @@ func TestMockRepository(t *testing.T) {
 	t.Run("DeleteProduct", func(t *testing.T) {
 		testDeleteProduct(repo, t)
 	})
-}
-
-func TestIntegration(t *testing.T) {
-
 }
 
 func setup(repo ProductRepository) error {
