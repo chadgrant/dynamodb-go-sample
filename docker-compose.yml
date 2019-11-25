@@ -2,19 +2,19 @@ version: '3.4'
 
 services:
 
-   sample:
+   api:
      build:
        context: ./
        args:
-         - application=sample
+         - application=dynamodb-go-sample
          - friendly="Sample API"
          - build_hash=${HASH:-localbuild_hashmissing}
          - build_user=${USER}
          - build_branch=${BRANCH:-nobranch}
          - build_number=${BUILD_NUMBER:-1.0.0}
          - build_group=${BUILD_GROUP:-nogroupspecified}
-     image: chadgrant/sample:${BUILD_NUMBER:-1.0.0}
-     container_name: sample
+     image: chadgrant/sample_api:${BUILD_NUMBER:-1.0.0}
+     container_name: sample_api
      restart: unless-stopped
      ports:
        - 5000:8080
@@ -24,6 +24,16 @@ services:
        context: ./
        dockerfile: Dockerfile.tests
        args:
-         - application=sample_test
+         - application=dynamodb-go-sample
      image: chadgrant/sample_test:${BUILD_NUMBER:-1.0.0}
      container_name: sample_test
+     depends_on:
+        - data
+        - api
+
+   data:
+      container_name: sample_api_data
+      image: amazon/dynamodb-local:1.1
+      restart: unless-stopped
+      ports:
+         - 8000:8000

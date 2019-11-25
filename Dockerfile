@@ -8,9 +8,10 @@ ARG build_user
 ARG build_number
 ARG build_group
 
-COPY . /go/src/github.com/chadgrant/dynamodb-go-sample/
+COPY main.go /go/src/github.com/chadgrant/$application/
+COPY store /go/src/github.com/chadgrant/$application/store/
 
-WORKDIR /go/src/github.com/chadgrant/dynamodb-go-sample/
+WORKDIR /go/src/github.com/chadgrant/$application/
 
 RUN go get ./... && \
     go build -o /go/bin/goapp && \
@@ -27,6 +28,7 @@ FROM alpine:3.10.3
 RUN apk add --no-cache ca-certificates libc6-compat 
 WORKDIR /app
 COPY docs /app/docs/
+COPY data /app/data/
 COPY --from=builder /go/bin/goapp /app/
 COPY --from=builder /go/bin/metadata.txt /app/
 ENTRYPOINT ./goapp
