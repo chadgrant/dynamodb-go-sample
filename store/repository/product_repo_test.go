@@ -167,5 +167,4 @@ func testDeleteProduct(repo ProductRepository, t *testing.T) {
 	if p != nil {
 		t.Fatalf("product not deleted %s", p.ID)
 	}
-
 }

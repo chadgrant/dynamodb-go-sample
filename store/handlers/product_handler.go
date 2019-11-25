@@ -34,6 +34,11 @@ func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+
+	if p == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	json.NewEncoder(w).Encode(p)
 }
 
