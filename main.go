@@ -6,10 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
-
-	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
 	"github.com/chadgrant/go/http/infra"
 	"github.com/gorilla/mux"
 )
@@ -18,10 +17,6 @@ func main() {
 	host := *flag.String("host", "0.0.0.0", "default binding 0.0.0.0")
 	port := *flag.Int("port", 8080, "default port 8080")
 	flag.Parse()
-
-	infra.Handle()
-
-	http.Handle("/", http.FileServer(http.Dir("docs")))
 
 	repo := mock.NewProductRepository()
 	pop := repository.NewPopulator(repo)
@@ -32,6 +27,10 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+
+	infra.HandleGorilla(r)
+
+	r.Handle("/", http.FileServer(http.Dir("docs")))
 
 	ph := handlers.NewProductHandler(repo)
 	r.HandleFunc("/product", ph.GetAll).Methods(http.MethodGet)
