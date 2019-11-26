@@ -32,6 +32,7 @@ services:
         - api
       environment:
         DYNAMO_ENDPOINT: "http://data:8000"
+        TEST_INTEGRATION: 1
 
    data:
       container_name: sample_api_data

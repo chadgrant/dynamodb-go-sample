@@ -4,6 +4,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
@@ -15,12 +19,24 @@ func TestMockRepository(t *testing.T) {
 	runTests(repo, t)
 }
 
-func TestIntegration(t *testing.T) {
+func TestIntegrationRepository(t *testing.T) {
 	if len(os.Getenv("TEST_INTEGRATION")) == 0 {
 		t.Log("Skipping integration tests, TEST_INTEGRATION environment variable not set")
 		return
 	}
-	repo := dynamo.NewProductRepository("http://localhost:8000", "products")
+
+	ep := os.Getenv("DYNAMO_ENDPOINT")
+	if len(ep) == 0 {
+		ep = "http://localhost:8000"
+	}
+
+	sess, config := session.Must(session.NewSession()), &aws.Config{
+		Region:      aws.String("us-east-1"),
+		Credentials: credentials.NewStaticCredentials("123", "123", ""),
+		Endpoint:    aws.String(ep),
+	}
+
+	repo := dynamo.NewProductRepository("products", sess, config)
 	repo.DeleteTable()
 	if err := repo.CreateTable(); err != nil {
 		t.Errorf("could not create table %v", err)
@@ -41,6 +57,10 @@ func runTests(repo ProductRepository, t *testing.T) {
 
 	t.Run("GetSingleProduct", func(t *testing.T) {
 		testGetProduct(repo, t)
+	})
+
+	t.Run("GetProductsPaged", func(t *testing.T) {
+		testGetProductsPaged(repo, t)
 	})
 
 	t.Run("GetProducts", func(t *testing.T) {
@@ -95,6 +115,47 @@ func testGetProducts(repo ProductRepository, t *testing.T) {
 	}
 	if len(p) == 0 {
 		t.Fatal("no products returned")
+	}
+}
+
+func testGetProductsPaged(repo ProductRepository, t *testing.T) {
+	p, tot, err := repo.GetPaged("", 25)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if len(p) == 0 {
+		t.Fatal("no products returned")
+	}
+	if tot <= 0 {
+		t.Error("total is not correct")
+	}
+
+	if len(p) != 25 {
+		t.Errorf("unexpected amount returned. expected 25, got %d", len(p))
+	}
+
+	next := p[len(p)-1].ID
+	p, tot, err = repo.GetPaged(next, 25)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if len(p) == 0 {
+		t.Fatal("no products returned")
+	}
+	if tot <= 0 {
+		t.Error("total is not correct")
+	}
+
+	if len(p) != 25 {
+		t.Errorf("unexpected amount returned. expected 25, got %d", len(p))
+	}
+
+	for _, v := range p {
+		if v.ID == next {
+			t.Errorf("shouldn't see next %s", next)
+		}
 	}
 }
 

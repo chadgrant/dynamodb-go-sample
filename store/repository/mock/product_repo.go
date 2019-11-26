@@ -26,6 +26,27 @@ func (r *MockRepository) GetAll() ([]*store.Product, error) {
 	return p, nil
 }
 
+func (r *MockRepository) GetPaged(start string, limit int) ([]*store.Product, int, error) {
+	prds := make([]*store.Product, 0)
+	collect := len(start) == 0
+
+	for _, v := range r.Products {
+		if !collect {
+			if v.ID == start {
+				collect = true
+			}
+			continue
+		}
+
+		prds = append(prds, v)
+
+		if len(prds) == limit {
+			break
+		}
+	}
+	return prds, len(r.Products), nil
+}
+
 func (r *MockRepository) Get(productID string) (*store.Product, error) {
 	return r.Products[productID], nil
 }

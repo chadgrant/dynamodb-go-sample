@@ -3,10 +3,6 @@ FROM golang:1.13
 ARG application
 ENV APPLICATION ${application}
 
-COPY go-tests.sh /go/src/github.com/chadgrant/go-tests.sh
-RUN go get -u github.com/jstemmer/go-junit-report && \
-    chmod +x /go/src/github.com/chadgrant/go-tests.sh
-
 WORKDIR /go/src/github.com/chadgrant/$application
 
 COPY main.go /go/src/github.com/chadgrant/$application
@@ -15,4 +11,4 @@ COPY data /go/src/github.com/chadgrant/$application/data/
 
 RUN go get ./...
 
-ENTRYPOINT "../go-tests.sh"
+CMD ["go","test","-v","./..."]
