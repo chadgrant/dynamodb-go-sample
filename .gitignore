@@ -14,4 +14,4 @@
 #direnv
 .envrc
 
-sample
+dynamodb-go-sample

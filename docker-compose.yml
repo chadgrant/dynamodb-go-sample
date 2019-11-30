@@ -18,6 +18,8 @@ services:
      restart: unless-stopped
      ports:
        - 5000:8080
+     environment:
+        DYNAMO_ENDPOINT: "http://data:8000"       
 
    tests:
       build:
@@ -25,8 +27,8 @@ services:
        dockerfile: Dockerfile.tests
        args:
          - application=dynamodb-go-sample
-      image: chadgrant/sample_test:${BUILD_NUMBER:-1.0.0}
-      container_name: sample_test
+      image: chadgrant/sample_api_test:${BUILD_NUMBER:-1.0.0}
+      container_name: sample_api_test
       depends_on:
         - data
         - api

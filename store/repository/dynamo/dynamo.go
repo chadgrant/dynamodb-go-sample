@@ -2,6 +2,7 @@ package dynamo
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path"
 	"strings"
@@ -12,56 +13,52 @@ import (
 
 func DeleteTable(dynamo *dynamodb.DynamoDB, name string) error {
 	_, err := dynamo.DeleteTable(&dynamodb.DeleteTableInput{TableName: aws.String(name)})
-
 	return err
 }
 
-func CreateTables(dynamo *dynamodb.DynamoDB, deleteTable bool, directory string) ([]string, error) {
-	fs, err := ioutil.ReadDir(directory)
+func CreateTables(dynamo *dynamodb.DynamoDB, deleteTable bool, directory string) error {
+	files, err := ioutil.ReadDir(directory)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("reading files %s %v", directory, err)
 	}
 
-	names := make([]string, len(fs))
-	for i, f := range fs {
-		name, err := CreateTable(dynamo, deleteTable, path.Join(directory, f.Name()))
-		if err != nil {
-			return nil, err
+	for _, f := range files {
+		if err := CreateTable(dynamo, deleteTable, path.Join(directory, f.Name())); err != nil {
+			return err
 		}
-		names[i] = name
 	}
 
-	return names, nil
+	return nil
 }
 
-func CreateTable(dynamo *dynamodb.DynamoDB, deleteTable bool, file string) (string, error) {
-	t, err := getTableSchema(file)
+func CreateTable(dynamo *dynamodb.DynamoDB, deleteTable bool, file string) error {
+	t, err := loadTableSchema(file)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if err := DeleteTable(dynamo, *t.TableName); err != nil {
 		if !strings.Contains(err.Error(), dynamodb.ErrCodeResourceNotFoundException) {
-			return "", err
+			return fmt.Errorf("deleting table %v", err)
 		}
 	}
 
 	if _, err = dynamo.CreateTable(t); err != nil {
-		return *t.TableName, err
+		return fmt.Errorf("couldn't create table %v", err)
 	}
 
-	return *t.TableName, nil
+	return nil
 }
 
-func getTableSchema(file string) (*dynamodb.CreateTableInput, error) {
+func loadTableSchema(file string) (*dynamodb.CreateTableInput, error) {
 	bs, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("reading schema file %s %v", file, err)
 	}
 
 	t := &dynamodb.CreateTableInput{}
 	if err = json.Unmarshal(bs, t); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unmarshaling schema %s %v", file, err)
 	}
 
 	return t, nil

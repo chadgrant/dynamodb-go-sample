@@ -28,36 +28,33 @@ help: ## This help.
 .DEFAULT_GOAL := help
 
 clean:
-	rm sample
-
-build: get
-	go build -o sample
-
-test: get
-	go test ./... -v
+	rm dynamodb-go-sample
 
 get:
 	go get -u ./...
+
+build: get
+	go build
+
+test: get
+	go test ./... -v
 
 docker-build:
 	docker-compose build
 
 docker-push: docker-build
-	docker-compose push sample
+	docker-compose push api
 
-docker-infra:
+docker-run:
 	docker-compose up -d
 
-docker-test: docker-infra
+docker-test: docker-run
 	#optional sleep 15 #wait for infra to come up
 	docker-compose run tests
 
-docker-run :
-	docker-compose up -d
-
 docker-clean:
-	docker stop `docker ps -aq`
-	docker rm `docker ps -aq`
-	docker rmi `docker images -qf dangling=true`
-	docker volume rm `docker volume ls -qf dangling=true`
+	docker container stop `docker container ls -q --filter name=sample_api*`
+	docker container rm `docker container ls -aq --filter name=sample_api*`
 	docker rmi `docker images --format '{{.Repository}}:{{.Tag}}' | grep "chadgrant/sample"` -f
+	docker rmi `docker images -qf dangling=true`
+	#docker volume rm `docker volume ls -qf dangling=true`

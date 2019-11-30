@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-
 	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/go/http/infra"
@@ -19,20 +17,22 @@ func main() {
 	port := *flag.Int("port", 8080, "default port 8080")
 	flag.Parse()
 
-	repo := dynamodb.NewProductRepository()
-	pop := repository.NewPopulator(repo)
+	//repo := dynamo.NewProductRepository()
+	repo := repository.NewMockProductRepository()
 
-	if err := pop.LoadProducts("data/products.json"); err != nil {
+	pop := repository.NewPopulator(repo)
+	if err := pop.Load("data/products.json"); err != nil {
 		log.Fatalf("loading products %v", err)
 		return
 	}
 
 	r := mux.NewRouter()
-	r.Use(contentType)
+	//r.Use(contentType)
 
 	infra.HandleGorilla(r)
 
-	r.Handle("/", http.FileServer(http.Dir("docs")))
+	//fs := http.FileServer(http.Dir("docs"))
+	//r.Handle("/docs/", http.StripPrefix("/docs/", fs))
 
 	ph := handlers.NewProductHandler(repo)
 
@@ -43,6 +43,8 @@ func main() {
 	r.HandleFunc("/product/{category}/{id}", ph.Upsert).Methods(http.MethodPut)
 	r.HandleFunc("/product/{category}/{id}", ph.Get).Methods(http.MethodGet)
 	r.HandleFunc("/product/{category}/{id}", ph.Delete).Methods(http.MethodDelete)
+
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/")))
 
 	log.Printf("Started, serving at %s:%d\n", host, port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), r))

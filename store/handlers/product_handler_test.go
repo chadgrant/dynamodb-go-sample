@@ -9,80 +9,74 @@ import (
 	"testing"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
-
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 	"github.com/gorilla/mux"
 )
 
 func TestProductHandler(t *testing.T) {
-	repo, err := setup()
-	if err != nil {
+	repo := mock.NewProductRepository()
+
+	if err := setup(repo); err != nil {
 		t.Fatal(err)
-		return
 	}
 
 	h := NewProductHandler(repo)
 
-	t.Run("AddProduct", func(t *testing.T) {
-		testAddProduct(h, t)
+	t.Run("Add", func(t *testing.T) {
+		testAdd(h, t)
+	})
+
+	t.Run("GetPaged", func(t *testing.T) {
+		testGetPaged(h, t)
 	})
 
 	t.Run("Get", func(t *testing.T) {
-		testGetProducts(h, t)
-	})
-
-	t.Run("GetProduct", func(t *testing.T) {
 		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
-			t.Error(err)
-			return
+			t.Fatal(err)
 		}
 		for _, p := range prds {
-			testGetProduct(p.ID, h, t)
+			testGet(p.ID, h, t)
 		}
 	})
 
 	t.Run("UpdateProduct", func(t *testing.T) {
 		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
-			t.Error(err)
-			return
+			t.Fatal(err)
 		}
-		testUpdateProduct(prds[0], h, t)
+		testUpsert(prds[0], h, t)
 	})
 
 	t.Run("DeleteProduct", func(t *testing.T) {
 		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
-			t.Error(err)
-			return
+			t.Fatal(err)
 		}
-		testDeleteProduct(prds[0].ID, h, t)
+		testDelete(prds[0].ID, h, t)
 	})
 }
 
-func setup() (repository.ProductRepository, error) {
-	repo := mock.NewProductRepository()
+func setup(repo repository.ProductRepository) error {
+	pop := repository.NewPopulator(repo)
 
-	populator := repository.NewPopulator(repo)
-
-	// if err := populator.CreateProducts(100); err != nil {
-	// 	return nil,err
+	// if err := pop.Create(100); err != nil {
+	// 	return err
 	// }
 
-	// if err := populator.ExportProducts("../../data/products.json"); err != nil {
-	// 	return nil,err
+	// if err := pop.Export("../../data/products.json"); err != nil {
+	// 	return err
 	// }
 
-	if err := populator.LoadProducts("../../data/products.json"); err != nil {
-		return nil, err
+	if err := pop.Load("../../data/products.json"); err != nil {
+		return err
 	}
 
-	return repo, nil
+	return nil
 }
 
-func testAddProduct(handler *ProductHandler, t *testing.T) {
+func testAdd(handler *ProductHandler, t *testing.T) {
 	b := []byte("{ \"name\":\"created from web test\", \"description\": \"nice product from web test\", \"price\": 5.77 }")
 	r, _ := http.NewRequest(http.MethodPost, "product/hats", bytes.NewBuffer(b))
 	w := httptest.NewRecorder()
@@ -91,11 +85,10 @@ func testAddProduct(handler *ProductHandler, t *testing.T) {
 
 	if w.Code != http.StatusNoContent {
 		t.Errorf("expected no content response got %d", w.Code)
-		return
 	}
 }
 
-func testGetProducts(handler *ProductHandler, t *testing.T) {
+func testGetPaged(handler *ProductHandler, t *testing.T) {
 	r, _ := http.NewRequest(http.MethodGet, "product/hats", nil)
 	w := httptest.NewRecorder()
 
@@ -103,14 +96,12 @@ func testGetProducts(handler *ProductHandler, t *testing.T) {
 
 	js, err := ioutil.ReadAll(w.Body)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	var p []store.Product
 	if err := json.Unmarshal(js, &p); err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	if len(p) == 0 {
@@ -118,7 +109,7 @@ func testGetProducts(handler *ProductHandler, t *testing.T) {
 	}
 }
 
-func testGetProduct(id string, handler *ProductHandler, t *testing.T) {
+func testGet(id string, handler *ProductHandler, t *testing.T) {
 	r, _ := http.NewRequest(http.MethodGet, "product/hats/"+id, nil)
 	w := httptest.NewRecorder()
 
@@ -142,8 +133,7 @@ func testGetProduct(id string, handler *ProductHandler, t *testing.T) {
 
 	var p store.Product
 	if err := json.Unmarshal(js, &p); err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	if p.ID != id {
@@ -151,14 +141,13 @@ func testGetProduct(id string, handler *ProductHandler, t *testing.T) {
 	}
 }
 
-func testUpdateProduct(product *store.Product, handler *ProductHandler, t *testing.T) {
-	u := product
-	u.Name = product.Name + " Updated"
+func testUpsert(product *store.Product, handler *ProductHandler, t *testing.T) {
+	copy := product
+	copy.Name = product.Name + " Updated"
 
-	b, err := json.Marshal(u)
+	b, err := json.Marshal(copy)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	r, _ := http.NewRequest(http.MethodPut, "product/hats/"+product.ID, bytes.NewBuffer(b))
@@ -173,11 +162,10 @@ func testUpdateProduct(product *store.Product, handler *ProductHandler, t *testi
 	handler.Upsert(w, r)
 
 	if w.Code != http.StatusAccepted {
-		t.Errorf("unexpected status, expected %d got %d", http.StatusAccepted, w.Code)
-		return
+		t.Fatalf("unexpected status, expected %d got %d", http.StatusAccepted, w.Code)
 	}
 
-	r, _ = http.NewRequest(http.MethodGet, "product/hats/"+u.ID, nil)
+	r, _ = http.NewRequest(http.MethodGet, "product/hats/"+copy.ID, nil)
 	w = httptest.NewRecorder()
 
 	r = mux.SetURLVars(r, vars)
@@ -190,22 +178,20 @@ func testUpdateProduct(product *store.Product, handler *ProductHandler, t *testi
 
 	js, err := ioutil.ReadAll(w.Body)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	var p store.Product
 	if err := json.Unmarshal(js, &p); err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
-	if p.Name != u.Name {
+	if p.Name != copy.Name {
 		t.Errorf("product name was not updated: %s", p.Name)
 	}
 }
 
-func testDeleteProduct(productID string, handler *ProductHandler, t *testing.T) {
+func testDelete(productID string, handler *ProductHandler, t *testing.T) {
 	r, _ := http.NewRequest(http.MethodDelete, "product/hats/"+productID, nil)
 	w := httptest.NewRecorder()
 

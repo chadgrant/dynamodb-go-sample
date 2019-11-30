@@ -1,4 +1,4 @@
-package mock
+package repository
 
 import (
 	"sort"
@@ -12,13 +12,11 @@ type MockRepository struct {
 	lookup   map[string]string
 }
 
-func NewProductRepository() *MockRepository {
-	repo := &MockRepository{
+func NewMockProductRepository() *MockRepository {
+	return &MockRepository{
 		products: make([]*store.Product, 0),
 		lookup:   make(map[string]string),
 	}
-
-	return repo
 }
 
 func (r *MockRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, int64, error) {
@@ -30,18 +28,18 @@ func (r *MockRepository) GetPaged(category string, limit int, lastID string, las
 		}
 	}
 
-	s := 0
+	start := 0
 	if len(lastID) > 0 {
-		s, _ = find(prds, lastID)
-		s++
+		start, _ = find(prds, lastID)
+		start++
 	}
 
-	e := s + limit
-	if e > len(prds) {
-		e = len(prds)
+	end := start + limit
+	if end > len(prds) {
+		end = len(prds)
 	}
 
-	return prds[s:e], int64(len(prds)), nil
+	return prds[start:end], int64(len(prds)), nil
 }
 
 func (r *MockRepository) Get(productID string) (*store.Product, error) {
@@ -64,10 +62,9 @@ func (r *MockRepository) Upsert(category string, product *store.Product) error {
 func (r *MockRepository) Delete(productID string) error {
 	ps := make([]*store.Product, 0)
 	for _, p := range r.products {
-		if p.ID == productID {
-			continue
+		if p.ID != productID {
+			ps = append(ps, p)
 		}
-		ps = append(ps, p)
 	}
 	r.products = ps
 	return nil

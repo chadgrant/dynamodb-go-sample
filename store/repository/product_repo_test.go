@@ -11,16 +11,14 @@ import (
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
-	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 	"github.com/google/uuid"
 )
 
-func TestMockRepository(t *testing.T) {
-	repo := mock.NewProductRepository()
-	runTests(repo, t)
+func TestMock(t *testing.T) {
+	runTests(NewMockProductRepository(), t)
 }
 
-func TestIntegrationRepository(t *testing.T) {
+func TestIntegration(t *testing.T) {
 	if len(os.Getenv("TEST_INTEGRATION")) == 0 {
 		t.Log("Skipping integration tests, TEST_INTEGRATION environment variable not set")
 		return
@@ -37,13 +35,12 @@ func TestIntegrationRepository(t *testing.T) {
 		Endpoint:    aws.String(ep),
 	}
 
-	if _, err := dynamo.CreateTables(dynamodb.New(sess, config), true, "../../data/schema"); err != nil {
-		t.Errorf("error creating tables %v", err)
+	if err := dynamo.CreateTables(dynamodb.New(sess, config), true, "../../data/schema"); err != nil {
+		t.Fatalf("creating tables %v", err)
 		return
 	}
 
-	repo := dynamo.NewProductRepository("products", sess, config)
-	runTests(repo, t)
+	runTests(dynamo.NewProductRepository("products", sess, config), t)
 }
 
 func runTests(repo ProductRepository, t *testing.T) {
@@ -51,46 +48,46 @@ func runTests(repo ProductRepository, t *testing.T) {
 		t.Fatalf("setup failed %v", err)
 	}
 
-	t.Run("AddProduct", func(t *testing.T) {
-		testAddProduct(repo, t)
+	t.Run("Add", func(t *testing.T) {
+		testAdd(repo, t)
 	})
 
-	t.Run("GetSingleProduct", func(t *testing.T) {
-		testGetProduct(repo, t)
+	t.Run("GetSingle", func(t *testing.T) {
+		testGet(repo, t)
 	})
 
-	t.Run("GetProductsPaged", func(t *testing.T) {
-		testGetProductsPaged(repo, t)
+	t.Run("GetPaged", func(t *testing.T) {
+		testGetPaged(repo, t)
 	})
 
-	t.Run("UpsertProduct", func(t *testing.T) {
-		testUpsertProduct(repo, t)
+	t.Run("Upsert", func(t *testing.T) {
+		testUpsert(repo, t)
 	})
 
-	t.Run("DeleteProduct", func(t *testing.T) {
-		testDeleteProduct(repo, t)
+	t.Run("Delete", func(t *testing.T) {
+		testDelete(repo, t)
 	})
 }
 
 func setup(repo ProductRepository) error {
 	populator := NewPopulator(repo)
 
-	// if err := populator.CreateProducts(100); err != nil {
+	// if err := populator.Create(100); err != nil {
 	// 	return err
 	// }
 
-	// if err := populator.ExportProducts("../../data/products.json"); err != nil {
+	// if err := populator.Export("../../data/products.json"); err != nil {
 	// 	return err
 	// }
 
-	if err := populator.LoadProducts("../../data/products.json"); err != nil {
+	if err := populator.Load("../../data/products.json"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func testAddProduct(repo ProductRepository, t *testing.T) {
+func testAdd(repo ProductRepository, t *testing.T) {
 	id, _ := uuid.NewRandom()
 	p := &store.Product{
 		ID:    id.String(),
@@ -103,15 +100,14 @@ func testAddProduct(repo ProductRepository, t *testing.T) {
 	}
 }
 
-func testGetProductsPaged(repo ProductRepository, t *testing.T) {
+func testGetPaged(repo ProductRepository, t *testing.T) {
 
 	dupes := make(map[string]*store.Product)
 	var products []*store.Product
 	var err error
-	last := ""
+	var last string
 	lastPrice := float64(0)
-	total := int64(0)
-	visited := int64(0)
+	total, visited := int64(0), int64(0)
 
 	for {
 		products, total, err = repo.GetPaged(categories[0], 25, last, lastPrice)
@@ -122,8 +118,7 @@ func testGetProductsPaged(repo ProductRepository, t *testing.T) {
 		for i, p := range products {
 			if i > 0 {
 				if products[i-1].Price < products[i].Price {
-					t.Error("products not sorted")
-					return
+					t.Fatal("products not sorted")
 				}
 			}
 			visited++
@@ -146,11 +141,10 @@ func testGetProductsPaged(repo ProductRepository, t *testing.T) {
 	}
 }
 
-func testGetProduct(repo ProductRepository, t *testing.T) {
+func testGet(repo ProductRepository, t *testing.T) {
 	ps, _, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
-		t.Errorf("could not get products %v", err)
-		return
+		t.Fatalf("could not get products %v", err)
 	}
 
 	if len(ps) == 0 {
@@ -160,8 +154,7 @@ func testGetProduct(repo ProductRepository, t *testing.T) {
 	for _, v := range ps {
 		p, err := repo.Get(v.ID)
 		if err != nil {
-			t.Error(err)
-			return
+			t.Fatalf("getting product %s %v", v.ID, err)
 		}
 		if p.ID != v.ID {
 			t.Fatalf("wrong product returned expected %s got %s", v.ID, p.ID)
@@ -169,11 +162,10 @@ func testGetProduct(repo ProductRepository, t *testing.T) {
 	}
 }
 
-func testUpsertProduct(repo ProductRepository, t *testing.T) {
+func testUpsert(repo ProductRepository, t *testing.T) {
 	ps, _, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
-		t.Errorf("could not get all %v", err)
-		return
+		t.Fatalf("getting products %v", err)
 	}
 
 	if len(ps) == 0 {
@@ -182,50 +174,42 @@ func testUpsertProduct(repo ProductRepository, t *testing.T) {
 
 	p, err := repo.Get(ps[0].ID)
 	if err != nil {
-		t.Errorf("could not get product %v", err)
-		t.Error(err)
-		return
+		t.Fatalf("getting product %s %v", ps[0].ID, err)
 	}
 
 	p.Name = p.Name + " Updated"
 
 	if err := repo.Upsert(categories[0], p); err != nil {
-		t.Errorf("could not upsert product %v", err)
-		return
+		t.Fatalf("upserting product %v", err)
 	}
 
 	n, err := repo.Get(p.ID)
 	if err != nil {
-		t.Errorf("could not get updated product %v", err)
-		return
+		t.Fatalf("could not get updated product %v", err)
 	}
 
 	if n.Name != p.Name {
-		t.Errorf("product name not updated got %s expected %s", n.Name, p.Name)
+		t.Fatalf("product name not updated got %s expected %s", n.Name, p.Name)
 	}
 }
 
-func testDeleteProduct(repo ProductRepository, t *testing.T) {
+func testDelete(repo ProductRepository, t *testing.T) {
 	ps, _, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
-		t.Errorf("could not get all products %v", err)
-		return
+		t.Fatalf("could not get products %v", err)
 	}
 
 	if len(ps) == 0 {
 		t.Fatal("no products returned")
-		return
 	}
 
 	if err := repo.Delete(ps[0].ID); err != nil {
-		t.Errorf("could not delete product %s %v", ps[0].ID, err)
-		return
+		t.Fatalf("deleting product %s %v", ps[0].ID, err)
 	}
 
 	p, err := repo.Get(ps[0].ID)
 	if err != nil {
-		t.Errorf("could not get product %s %v", ps[0].ID, err)
-		return
+		t.Fatalf("getting product %s %v", ps[0].ID, err)
 	}
 
 	if p != nil {
