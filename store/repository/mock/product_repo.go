@@ -9,11 +9,13 @@ import (
 
 type MockRepository struct {
 	products []*store.Product
+	lookup   map[string]string
 }
 
 func NewProductRepository() *MockRepository {
 	repo := &MockRepository{
 		products: make([]*store.Product, 0),
+		lookup:   make(map[string]string),
 	}
 
 	return repo
@@ -22,9 +24,9 @@ func NewProductRepository() *MockRepository {
 func (r *MockRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, int64, error) {
 
 	prds := make([]*store.Product, 0)
-	for _, v := range r.products {
-		if strings.EqualFold(v.Category, category) {
-			prds = append(prds, v)
+	for _, p := range r.products {
+		if strings.EqualFold(r.lookup[p.ID], category) {
+			prds = append(prds, p)
 		}
 	}
 
@@ -47,13 +49,14 @@ func (r *MockRepository) Get(productID string) (*store.Product, error) {
 	return p, nil
 }
 
-func (r *MockRepository) Upsert(product *store.Product) error {
+func (r *MockRepository) Upsert(category string, product *store.Product) error {
 	i, _ := find(r.products, product.ID)
 	if i >= 0 {
 		r.products[i] = product
 	} else {
 		r.products = append(r.products, product)
 	}
+	r.lookup[product.ID] = category
 	r.sort()
 	return nil
 }

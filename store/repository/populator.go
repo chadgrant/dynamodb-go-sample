@@ -29,12 +29,17 @@ func (p *Populator) LoadProducts(path string) error {
 		return err
 	}
 
-	var prds []*store.Product
+	var prds map[string][]*store.Product
 	if err := json.Unmarshal(bs, &prds); err != nil {
 		return err
 	}
 
-	return p.addProducts(prds)
+	for c, a := range prds {
+		if err := p.addProducts(c, a); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (p *Populator) CreateProducts(max int) error {
@@ -44,13 +49,12 @@ func (p *Populator) CreateProducts(max int) error {
 			id, _ := uuid.NewRandom()
 			prds[i] = &store.Product{
 				ID:          id.String(),
-				Category:    c,
 				Name:        fmt.Sprintf("Test %s %s", c, id.String()),
 				Price:       randPrice(),
 				Description: fmt.Sprintf("You should buy this %s, it's awesome. I have 2. You'll love it. Trust me.", c),
 			}
 		}
-		if err := p.addProducts(prds); err != nil {
+		if err := p.addProducts(c, prds); err != nil {
 			return err
 		}
 	}
@@ -58,9 +62,10 @@ func (p *Populator) CreateProducts(max int) error {
 }
 
 func (p *Populator) ExportProducts(path string) error {
-	all := make([]*store.Product, 0)
+	all := make(map[string][]*store.Product)
 
 	for _, c := range categories {
+		all[c] = make([]*store.Product, 0)
 		last := ""
 		lastPrice := float64(0)
 		for {
@@ -69,7 +74,7 @@ func (p *Populator) ExportProducts(path string) error {
 				return err
 			}
 
-			all = append(all, products...)
+			all[c] = append(all[c], products...)
 
 			if len(products) < 25 {
 				break
@@ -91,9 +96,9 @@ func (p *Populator) ExportProducts(path string) error {
 	return nil
 }
 
-func (p *Populator) addProducts(products []*store.Product) error {
+func (p *Populator) addProducts(category string, products []*store.Product) error {
 	for _, pr := range products {
-		if err := p.repo.Upsert(pr); err != nil {
+		if err := p.repo.Upsert(category, pr); err != nil {
 			return fmt.Errorf("upsert failed: %v %v", err, pr)
 		}
 	}

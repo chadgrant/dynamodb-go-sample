@@ -84,7 +84,7 @@ func setup() (repository.ProductRepository, error) {
 
 func testAddProduct(handler *ProductHandler, t *testing.T) {
 	b := []byte("{ \"name\":\"created from web test\", \"description\": \"nice product from web test\", \"price\": 5.77 }")
-	r, _ := http.NewRequest(http.MethodPost, "product", bytes.NewBuffer(b))
+	r, _ := http.NewRequest(http.MethodPost, "product/hats", bytes.NewBuffer(b))
 	w := httptest.NewRecorder()
 
 	handler.Add(w, r)
@@ -96,7 +96,7 @@ func testAddProduct(handler *ProductHandler, t *testing.T) {
 }
 
 func testGetProducts(handler *ProductHandler, t *testing.T) {
-	r, _ := http.NewRequest(http.MethodGet, "product/", nil)
+	r, _ := http.NewRequest(http.MethodGet, "product/hats", nil)
 	w := httptest.NewRecorder()
 
 	handler.GetPaged(w, r)
@@ -119,7 +119,7 @@ func testGetProducts(handler *ProductHandler, t *testing.T) {
 }
 
 func testGetProduct(id string, handler *ProductHandler, t *testing.T) {
-	r, _ := http.NewRequest(http.MethodGet, "product/"+id, nil)
+	r, _ := http.NewRequest(http.MethodGet, "product/hats/"+id, nil)
 	w := httptest.NewRecorder()
 
 	vars := map[string]string{
@@ -161,7 +161,7 @@ func testUpdateProduct(product *store.Product, handler *ProductHandler, t *testi
 		return
 	}
 
-	r, _ := http.NewRequest(http.MethodPut, "product/"+product.ID, bytes.NewBuffer(b))
+	r, _ := http.NewRequest(http.MethodPut, "product/hats/"+product.ID, bytes.NewBuffer(b))
 	w := httptest.NewRecorder()
 
 	vars := map[string]string{
@@ -177,7 +177,7 @@ func testUpdateProduct(product *store.Product, handler *ProductHandler, t *testi
 		return
 	}
 
-	r, _ = http.NewRequest(http.MethodGet, "product/"+u.ID, nil)
+	r, _ = http.NewRequest(http.MethodGet, "product/hats/"+u.ID, nil)
 	w = httptest.NewRecorder()
 
 	r = mux.SetURLVars(r, vars)
@@ -206,7 +206,7 @@ func testUpdateProduct(product *store.Product, handler *ProductHandler, t *testi
 }
 
 func testDeleteProduct(productID string, handler *ProductHandler, t *testing.T) {
-	r, _ := http.NewRequest(http.MethodDelete, "product/"+productID, nil)
+	r, _ := http.NewRequest(http.MethodDelete, "product/hats/"+productID, nil)
 	w := httptest.NewRecorder()
 
 	vars := map[string]string{
@@ -222,7 +222,7 @@ func testDeleteProduct(productID string, handler *ProductHandler, t *testing.T) 
 		return
 	}
 
-	r, _ = http.NewRequest(http.MethodGet, "product/"+productID, nil)
+	r, _ = http.NewRequest(http.MethodGet, "product/hats/"+productID, nil)
 	w = httptest.NewRecorder()
 	r = mux.SetURLVars(r, vars)
 

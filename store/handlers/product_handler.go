@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
@@ -18,16 +19,25 @@ func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
 	return &ProductHandler{repo}
 }
 
-func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
-	// cat := r.URL.Query()["category"][0]
-	// last := r.URL.Query()["last"][0]
-	// lastprice, _ := strconv.ParseFloat(r.URL.Query()["lastprice"][0], 2)
+func (h *ProductHandler) Categories(w http.ResponseWriter, r *http.Request) {
+	//faked
+	var categories = []string{"Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory"}
 
-	// products, _, err := h.repo.GetPaged(cat, 25, last, lastprice)
-	// if err != nil {
-	// 	return
-	// }
-	// json.NewEncoder(w).Encode(products)
+	json.NewEncoder(w).Encode(categories)
+}
+
+func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	cat := vars["category"]
+
+	last := param(r, "last", "")
+	lastprice, _ := strconv.ParseFloat(param(r, "lastprice", "0"), 2)
+
+	products, _, err := h.repo.GetPaged(cat, 25, last, lastprice)
+	if err != nil {
+		return
+	}
+	json.NewEncoder(w).Encode(products)
 }
 
 func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +57,8 @@ func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	cat := vars["category"]
 
 	var p store.Product
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
@@ -54,7 +66,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.repo.Upsert(&p); err != nil {
+	if err := h.repo.Upsert(cat, &p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -66,6 +78,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	cat := vars["category"]
 
 	var p store.Product
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
@@ -75,7 +88,7 @@ func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 
 	p.ID = id
 
-	if err := h.repo.Upsert(&p); err != nil {
+	if err := h.repo.Upsert(cat, &p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -93,4 +106,12 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func param(r *http.Request, key, defaultValue string) string {
+	v, ok := r.URL.Query()[key]
+	if ok && len(v) > 0 && len(v[0]) > 0 {
+		return v[0]
+	}
+	return defaultValue
 }

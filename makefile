@@ -52,6 +52,9 @@ docker-test: docker-infra
 	#optional sleep 15 #wait for infra to come up
 	docker-compose run tests
 
+docker-run :
+	docker-compose up -d
+
 docker-clean:
 	docker stop `docker ps -aq`
 	docker rm `docker ps -aq`
