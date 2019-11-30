@@ -33,7 +33,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("GetProduct", func(t *testing.T) {
-		prds, err := repo.GetAll()
+		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Error(err)
 			return
@@ -44,7 +44,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("UpdateProduct", func(t *testing.T) {
-		prds, err := repo.GetAll()
+		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Error(err)
 			return
@@ -53,7 +53,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("DeleteProduct", func(t *testing.T) {
-		prds, err := repo.GetAll()
+		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Error(err)
 			return
@@ -99,7 +99,7 @@ func testGetProducts(handler *ProductHandler, t *testing.T) {
 	r, _ := http.NewRequest(http.MethodGet, "product/", nil)
 	w := httptest.NewRecorder()
 
-	handler.GetAll(w, r)
+	handler.GetPaged(w, r)
 
 	js, err := ioutil.ReadAll(w.Body)
 	if err != nil {

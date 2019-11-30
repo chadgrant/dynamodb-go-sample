@@ -33,7 +33,7 @@ func main() {
 	r.Handle("/", http.FileServer(http.Dir("docs")))
 
 	ph := handlers.NewProductHandler(repo)
-	r.HandleFunc("/product", ph.GetAll).Methods(http.MethodGet)
+	r.HandleFunc("/product", ph.GetPaged).Methods(http.MethodGet)
 	r.HandleFunc("/product", ph.Add).Methods(http.MethodPost)
 	r.HandleFunc("/product/{id}", ph.Upsert).Methods(http.MethodPut)
 	r.HandleFunc("/product/{id}", ph.Get).Methods(http.MethodGet)

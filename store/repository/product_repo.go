@@ -3,10 +3,8 @@ package repository
 import "github.com/chadgrant/dynamodb-go-sample/store"
 
 type ProductRepository interface {
-	GetAll() ([]*store.Product, error)
-	GetPaged(start string, limit int) ([]*store.Product, int, error)
+	GetPaged(category string, limit int, last string, lastprice float64) ([]*store.Product, int64, error)
 	Get(productID string) (*store.Product, error)
-	Add(product *store.Product) error
 	Upsert(product *store.Product) error
 	Delete(productID string) error
 }

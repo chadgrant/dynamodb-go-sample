@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"time"
@@ -9,6 +10,8 @@ import (
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/google/uuid"
 )
+
+var categories = []string{"Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory"}
 
 type Populator struct {
 	repo ProductRepository
@@ -35,39 +38,63 @@ func (p *Populator) LoadProducts(path string) error {
 }
 
 func (p *Populator) CreateProducts(max int) error {
-	prds := make([]*store.Product, max)
-	for i := 0; i < max; i++ {
-		id, _ := uuid.NewRandom()
-		pr := &store.Product{
-			ID:          id.String(),
-			Name:        "Test Product " + id.String(),
-			Price:       randPrice(),
-			Description: "You should buy this product, it's awesome. I have 2. You'll love it. Trust me.'",
+	for _, c := range categories {
+		prds := make([]*store.Product, max)
+		for i := 0; i < max; i++ {
+			id, _ := uuid.NewRandom()
+			prds[i] = &store.Product{
+				ID:          id.String(),
+				Category:    c,
+				Name:        fmt.Sprintf("Test %s %s", c, id.String()),
+				Price:       randPrice(),
+				Description: fmt.Sprintf("You should buy this %s, it's awesome. I have 2. You'll love it. Trust me.", c),
+			}
 		}
-		prds[i] = pr
+		if err := p.addProducts(prds); err != nil {
+			return err
+		}
 	}
-	return p.addProducts(prds)
+	return nil
 }
 
 func (p *Populator) ExportProducts(path string) error {
-	prods, err := p.repo.GetAll()
-	if err != nil {
-		return err
+	all := make([]*store.Product, 0)
+
+	for _, c := range categories {
+		last := ""
+		lastPrice := float64(0)
+		for {
+			products, _, err := p.repo.GetPaged(c, 25, last, lastPrice)
+			if err != nil {
+				return err
+			}
+
+			all = append(all, products...)
+
+			if len(products) < 25 {
+				break
+			}
+
+			last = products[len(products)-1].ID
+			lastPrice = products[len(products)-1].Price
+		}
 	}
-	bs, err := json.Marshal(prods)
+
+	bs, err := json.Marshal(all)
 	if err != nil {
 		return err
 	}
 	if err := ioutil.WriteFile(path, bs, 0644); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (p *Populator) addProducts(products []*store.Product) error {
 	for _, pr := range products {
-		if err := p.repo.Add(pr); err != nil {
-			return err
+		if err := p.repo.Upsert(pr); err != nil {
+			return fmt.Errorf("upsert failed: %v %v", err, pr)
 		}
 	}
 	return nil

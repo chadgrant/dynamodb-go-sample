@@ -2,7 +2,6 @@ package dynamo
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
 
@@ -17,70 +16,51 @@ type DynamoDBProductRepository struct {
 	dynamo *dynamodb.DynamoDB
 }
 
-func NewProductRepository(table string, configProvider client.ConfigProvider, config *aws.Config) *DynamoDBProductRepository {
+func NewProductRepository(table string, sess client.ConfigProvider, config *aws.Config) *DynamoDBProductRepository {
 	return &DynamoDBProductRepository{
 		table:  table,
-		dynamo: dynamodb.New(configProvider, config),
+		dynamo: dynamodb.New(sess, config),
 	}
 }
 
-func (r *DynamoDBProductRepository) CreateTable() error {
-
-	input := &dynamodb.CreateTableInput{
-		AttributeDefinitions: []*dynamodb.AttributeDefinition{{
-			AttributeName: aws.String("id"),
-			AttributeType: aws.String("S"),
-		}},
-		KeySchema: []*dynamodb.KeySchemaElement{{
-			AttributeName: aws.String("id"),
-			KeyType:       aws.String("HASH"),
-		}},
-		GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{{
-			IndexName: aws.String("PriceIndex"),
-			KeySchema: []*dynamodb.KeySchemaElement{{
-				AttributeName: aws.String("price"),
-				KeyType:       aws.String("RANGE"),
-			}},
-		}},
-		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-			ReadCapacityUnits:  aws.Int64(10),
-			WriteCapacityUnits: aws.Int64(10),
+func (r *DynamoDBProductRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, int64, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(r.table),
+		IndexName:              aws.String("price-index"),
+		KeyConditionExpression: aws.String("category = :c"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":c": {S: aws.String(category)},
 		},
-		TableName: aws.String(r.table),
+		Limit:            aws.Int64(int64(limit)),
+		ScanIndexForward: aws.Bool(false),
 	}
+	if len(lastID) > 0 {
 
-	if _, err := r.dynamo.CreateTable(input); err != nil {
-		return err
+		input.ExclusiveStartKey = map[string]*dynamodb.AttributeValue{
+			"id":       {S: aws.String(lastID)},
+			"category": {S: aws.String(category)},
+			"price":    {N: aws.String(fmt.Sprint(lastPrice))},
+		}
 	}
-
-	return nil
-}
-
-func (r *DynamoDBProductRepository) DeleteTable() error {
-	_, err := r.dynamo.DeleteTable(&dynamodb.DeleteTableInput{TableName: aws.String(r.table)})
-
-	return err
-}
-
-func (r *DynamoDBProductRepository) GetAll() ([]*store.Product, error) {
-	resp, err := r.dynamo.Scan(&dynamodb.ScanInput{
-		TableName: aws.String(r.table),
-	})
+	resp, err := r.dynamo.Query(input)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return mapItems(resp.Items)
-}
+	prds := make([]*store.Product, len(resp.Items))
+	for i, item := range resp.Items {
+		p := &store.Product{}
+		if err := dynamodbattribute.UnmarshalMap(item, &p); err != nil {
+			return nil, 0, fmt.Errorf("error mapping item %v", err)
+		}
+		prds[i] = p
+	}
 
-func (r *DynamoDBProductRepository) GetPaged(start string, limit int) ([]*store.Product, int, error) {
-	//fake
-	prds, err := r.GetAll()
-	return prds, 100, err
+	return prds, *resp.Count, nil
 }
 
 func (r *DynamoDBProductRepository) Get(productID string) (*store.Product, error) {
-	i, err := r.dynamo.GetItem(&dynamodb.GetItemInput{
+	result, err := r.dynamo.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(r.table),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": &dynamodb.AttributeValue{S: aws.String(productID)},
@@ -90,48 +70,30 @@ func (r *DynamoDBProductRepository) Get(productID string) (*store.Product, error
 		return nil, fmt.Errorf("could not get item %v", err)
 	}
 
-	if i.Item == nil {
+	if result.Item == nil {
 		return nil, nil
 	}
 
-	return mapItem(i.Item)
-}
-
-func (r *DynamoDBProductRepository) Add(product *store.Product) error {
-
-	av, err := dynamodbattribute.MarshalMap(product)
-	if err != nil {
-		return err
+	p := &store.Product{}
+	if err := dynamodbattribute.UnmarshalMap(result.Item, &p); err != nil {
+		return nil, fmt.Errorf("error mapping item %v", err)
 	}
-
-	if _, err = r.dynamo.PutItem(&dynamodb.PutItemInput{
-		Item:      av,
-		TableName: aws.String(r.table),
-	}); err != nil {
-		return err
-	}
-
-	return nil
+	return p, nil
 }
 
 func (r *DynamoDBProductRepository) Upsert(product *store.Product) error {
 
 	av, err := dynamodbattribute.MarshalMap(product)
 	if err != nil {
-		return err
+		return fmt.Errorf("error marshalling %v", err)
 	}
 
-	input := &dynamodb.PutItemInput{
+	_, err = r.dynamo.PutItem(&dynamodb.PutItemInput{
 		Item:      av,
 		TableName: aws.String(r.table),
-	}
+	})
 
-	_, err = r.dynamo.PutItem(input)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (r *DynamoDBProductRepository) Delete(productID string) error {
@@ -142,38 +104,7 @@ func (r *DynamoDBProductRepository) Delete(productID string) error {
 		},
 	}
 
-	if _, err := r.dynamo.DeleteItem(input); err != nil {
-		return err
-	}
+	_, err := r.dynamo.DeleteItem(input)
 
-	return nil
-}
-
-func mapItems(items []map[string]*dynamodb.AttributeValue) ([]*store.Product, error) {
-	pr := make([]*store.Product, len(items))
-
-	for i, item := range items {
-		p, err := mapItem(item)
-		if err != nil {
-			return nil, err
-		}
-		pr[i] = p
-	}
-
-	return pr, nil
-}
-
-func mapItem(item map[string]*dynamodb.AttributeValue) (*store.Product, error) {
-	p := &store.Product{}
-
-	p.ID = *item["id"].S
-	p.Name = *item["name"].S
-	p.Description = string(item["description"].B)
-	price, err := strconv.ParseFloat(*item["price"].N, 64)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse price %v", err)
-	}
-	p.Price = price
-
-	return p, err
+	return err
 }
