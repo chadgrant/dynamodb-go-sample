@@ -29,7 +29,7 @@ help: ## This help.
 .EXPORT_ALL_VARIABLES:
 
 clean:
-	rm dynamodb-go-sample
+	-rm dynamodb-go-sample
 
 get:
 	go get -u ./...
@@ -47,21 +47,28 @@ docker-push: docker-build
 	docker-compose push api
 
 docker-infra:
+	docker-compose up --no-start
 	docker-compose start data
 
-docker-run: docker-build
+docker-run:
+	docker-compose up --no-start
 	docker-compose start data
-	sleep 5 #wait for infra to come up
+	#sleep 3 #wait for infra to come up
 	docker-compose up -d
 
-docker-test: docker-build
+docker-test:
+	docker-compose up --no-start
 	docker-compose start data
-	sleep 5 #wait for infra to come up
+	#sleep 3 #wait for infra to come up
 	docker-compose run tests
 
-docker-clean:
+docker-stop:
 	-docker container stop `docker container ls -q --filter name=sample_api*`
+
+docker-rm: docker-stop
 	-docker container rm `docker container ls -aq --filter name=sample_api*`
+
+docker-clean: docker-rm
 	-docker rmi `docker images --format '{{.Repository}}:{{.Tag}}' | grep "chadgrant/sample"` -f
 	-docker rmi `docker images -qf dangling=true`
 	#-docker volume rm `docker volume ls -qf dangling=true`

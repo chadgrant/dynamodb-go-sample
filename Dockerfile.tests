@@ -1,7 +1,6 @@
 FROM golang:1.13
 
 ARG application
-ENV APPLICATION ${application}
 
 WORKDIR /go/src/github.com/chadgrant/$application
 

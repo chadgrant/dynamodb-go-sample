@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chadgrant/go/http/infra"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -53,24 +51,24 @@ func CreateTable(dynamo *dynamodb.DynamoDB, deleteTable bool, file string) error
 	return nil
 }
 
-func Health(dynamo *dynamodb.DynamoDB, table string) infra.HealthCheckTestResult {
-	res := &infra.HealthCheckTestResult{
-		Name:     "dynamodb",
-		TestedAt: time.Now().UTC(),
-		Result:   infra.Unhealthy,
-	}
-	for i := 0; i < 12; i++ {
-		if tbls, err := dynamo.ListTables(&dynamodb.ListTablesInput{}); err == nil {
-			for _, t := range tbls.TableNames {
-				if strings.EqualFold(*t, table) {
-					res.Result = infra.Healthy
-					break
+func IsTableActive(dynamo *dynamodb.DynamoDB, table string, timeout time.Duration) bool {
+	tick := time.NewTicker(500 * time.Millisecond)
+	timeoutC := time.After(timeout)
+	defer tick.Stop()
+
+	for {
+		select {
+		case <-timeoutC:
+			return false
+
+		case <-tick.C:
+			if resp, err := dynamo.DescribeTable(&dynamodb.DescribeTableInput{TableName: aws.String(table)}); err == nil {
+				if *resp.Table.TableStatus == "ACTIVE" {
+					return true
 				}
 			}
 		}
-		time.Sleep(500)
 	}
-	return *res
 }
 
 func loadTableSchema(file string) (*dynamodb.CreateTableInput, error) {

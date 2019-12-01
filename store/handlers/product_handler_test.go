@@ -16,8 +16,18 @@ import (
 func TestProductHandler(t *testing.T) {
 	repo := repository.NewMockProductRepository()
 
-	if err := setup(repo); err != nil {
-		t.Fatal(err)
+	pop := repository.NewPopulator(repo)
+
+	// if err := pop.Create(100); err != nil {
+	// 	t.Fatalf("couldnt create data %v", err)
+	// }
+
+	// if err := pop.Export("../../data/products.json"); err != nil {
+	// 	t.Fatalf("couldnt export data %v", err)
+	// }
+
+	if err := pop.Load("../../data/products.json"); err != nil {
+		t.Fatalf("couldnt load data %v", err)
 	}
 
 	h := NewProductHandler(repo)
@@ -55,24 +65,6 @@ func TestProductHandler(t *testing.T) {
 		}
 		testDelete(prds[0].ID, h, t)
 	})
-}
-
-func setup(repo repository.ProductRepository) error {
-	pop := repository.NewPopulator(repo)
-
-	// if err := pop.Create(100); err != nil {
-	// 	return err
-	// }
-
-	// if err := pop.Export("../../data/products.json"); err != nil {
-	// 	return err
-	// }
-
-	if err := pop.Load("../../data/products.json"); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func testAdd(handler *ProductHandler, t *testing.T) {

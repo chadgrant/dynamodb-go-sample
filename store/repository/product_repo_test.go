@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
-	"github.com/chadgrant/go/http/infra"
 	"github.com/google/uuid"
 )
 
@@ -36,25 +35,30 @@ func TestIntegration(t *testing.T) {
 		Endpoint:    aws.String(ep),
 	})
 
-	for i := 0; i < 3; i++ {
-		dynamo.CreateTables(dyn, true, "../../data/schema")
-
-		if dynamo.Health(dyn, "products").Result == infra.Healthy {
-			break
-		}
-		time.Sleep(500)
+	if err := dynamo.CreateTables(dyn, true, "../../data/schema"); err != nil {
+		t.Fatalf("couldn't create tables %v", err)
 	}
 
-	if dynamo.Health(dyn, "products").Result != infra.Healthy {
-		t.Fatal("could not contact dynamo")
+	if !dynamo.IsTableActive(dyn, "products", 5*time.Second) {
+		t.Fatal("timeout waiting for table to be active")
 	}
 
 	runTests(dynamo.NewProductRepository("products", dyn), t)
 }
 
 func runTests(repo ProductRepository, t *testing.T) {
-	if err := setup(repo); err != nil {
-		t.Fatalf("setup failed %v", err)
+	pop := NewPopulator(repo)
+
+	// if err := pop.Create(100); err != nil {
+	// 	t.Fatalf("couldnt create data %v", err)
+	// }
+
+	// if err := pop.Export("../../data/products.json"); err != nil {
+	// 	t.Fatalf("couldnt export data %v", err)
+	// }
+
+	if err := pop.Load("../../data/products.json"); err != nil {
+		t.Fatalf("couldnt load data %v", err)
 	}
 
 	t.Run("GetSingle", func(t *testing.T) {
@@ -76,24 +80,6 @@ func runTests(repo ProductRepository, t *testing.T) {
 	t.Run("Delete", func(t *testing.T) {
 		testDelete(repo, t)
 	})
-}
-
-func setup(repo ProductRepository) error {
-	populator := NewPopulator(repo)
-
-	// if err := populator.Create(100); err != nil {
-	// 	return err
-	// }
-
-	// if err := populator.Export("../../data/products.json"); err != nil {
-	// 	return err
-	// }
-
-	if err := populator.Load("../../data/products.json"); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func testAdd(repo ProductRepository, t *testing.T) {
