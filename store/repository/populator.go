@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
@@ -27,18 +28,16 @@ func NewPopulator(repo ProductRepository) *Populator {
 func (p *Populator) Load(path string) error {
 	bs, err := ioutil.ReadFile(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("reading products from disk %s %v", path, err)
 	}
 
-	var prds map[string][]*store.Product
+	var prds []*store.Product
 	if err := json.Unmarshal(bs, &prds); err != nil {
-		return err
+		return fmt.Errorf("unmarshaling products from disk %s, %v", path, err)
 	}
 
-	for c, a := range prds {
-		if err := p.add(c, a); err != nil {
-			return err
-		}
+	if err := p.add(prds); err != nil {
+		return fmt.Errorf("saving products %v", err)
 	}
 	return nil
 }
@@ -50,23 +49,23 @@ func (p *Populator) Create(max int) error {
 			id, _ := uuid.NewRandom()
 			prds[i] = &store.Product{
 				ID:          id.String(),
+				Category:    strings.ToLower(c),
 				Name:        fmt.Sprintf("Test %s %s", c, id.String()),
 				Price:       randPrice(),
 				Description: fmt.Sprintf("You should buy this %s, it's awesome. I have 2. You'll love it. Trust me.", c),
 			}
 		}
-		if err := p.add(c, prds); err != nil {
-			return err
+		if err := p.add(prds); err != nil {
+			return fmt.Errorf("saving products %v", err)
 		}
 	}
 	return nil
 }
 
 func (p *Populator) Export(path string) error {
-	all := make(map[string][]*store.Product)
+	all := make([]*store.Product, 0)
 
 	for _, c := range categories {
-		all[c] = make([]*store.Product, 0)
 		last := ""
 		lastPrice := float64(0)
 		for {
@@ -75,7 +74,7 @@ func (p *Populator) Export(path string) error {
 				return err
 			}
 
-			all[c] = append(all[c], products...)
+			all = append(all, products...)
 
 			if len(products) < 25 {
 				break
@@ -88,18 +87,18 @@ func (p *Populator) Export(path string) error {
 
 	bs, err := json.Marshal(all)
 	if err != nil {
-		return err
+		return fmt.Errorf("export marshaling products %v", err)
 	}
 	if err := ioutil.WriteFile(path, bs, 0644); err != nil {
-		return err
+		return fmt.Errorf("export saving products %v", err)
 	}
 
 	return nil
 }
 
-func (p *Populator) add(category string, products []*store.Product) error {
+func (p *Populator) add(products []*store.Product) error {
 	for _, pr := range products {
-		if err := p.repo.Upsert(category, pr); err != nil {
+		if err := p.repo.Upsert(pr); err != nil {
 			return fmt.Errorf("upsert failed: %v", err)
 		}
 	}

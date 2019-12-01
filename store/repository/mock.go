@@ -47,14 +47,14 @@ func (r *MockRepository) Get(productID string) (*store.Product, error) {
 	return p, nil
 }
 
-func (r *MockRepository) Upsert(category string, product *store.Product) error {
+func (r *MockRepository) Upsert(product *store.Product) error {
 	i, _ := find(r.products, product.ID)
 	if i >= 0 {
 		r.products[i] = product
 	} else {
 		r.products = append(r.products, product)
 	}
-	r.lookup[product.ID] = category
+	r.lookup[product.ID] = product.Category
 	r.sort()
 	return nil
 }

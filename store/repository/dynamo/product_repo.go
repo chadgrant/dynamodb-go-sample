@@ -80,14 +80,14 @@ func (r *DynamoDBProductRepository) Get(productID string) (*store.Product, error
 	return p, nil
 }
 
-func (r *DynamoDBProductRepository) Upsert(category string, product *store.Product) error {
+func (r *DynamoDBProductRepository) Upsert(product *store.Product) error {
 	av, err := dynamodbattribute.MarshalMap(product)
 	if err != nil {
 		return fmt.Errorf("error marshalling %v", err)
 	}
 
 	av["price"].N = aws.String(fmt.Sprintf("%.2f", product.Price))
-	av["category"] = &dynamodb.AttributeValue{S: aws.String(category)}
+	av["category"] = &dynamodb.AttributeValue{S: aws.String(product.Category)}
 
 	_, err = r.dynamo.PutItem(&dynamodb.PutItemInput{
 		Item:      av,

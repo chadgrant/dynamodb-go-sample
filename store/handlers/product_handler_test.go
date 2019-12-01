@@ -74,7 +74,7 @@ func testAdd(handler *ProductHandler, t *testing.T) {
 
 	handler.Add(w, r)
 
-	if w.Code != http.StatusNoContent {
+	if w.Code != http.StatusCreated {
 		t.Errorf("expected no content response got %d", w.Code)
 	}
 }
@@ -152,7 +152,7 @@ func testUpsert(product *store.Product, handler *ProductHandler, t *testing.T) {
 
 	handler.Upsert(w, r)
 
-	if w.Code != http.StatusAccepted {
+	if w.Code != http.StatusNoContent {
 		t.Fatalf("unexpected status, expected %d got %d", http.StatusAccepted, w.Code)
 	}
 
@@ -194,7 +194,7 @@ func testDelete(productID string, handler *ProductHandler, t *testing.T) {
 
 	handler.Delete(w, r)
 
-	if w.Code != http.StatusAccepted {
+	if w.Code != http.StatusNoContent {
 		t.Errorf("unexpected status, expected %d got %d", http.StatusAccepted, w.Code)
 		return
 	}

@@ -76,28 +76,24 @@ func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	cat := vars["category"]
-
 	var p store.Product
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if err := h.repo.Upsert(cat, &p); err != nil {
+	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Location", fmt.Sprintf("product/%s", p.ID))
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	cat := vars["category"]
 
 	var p store.Product
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
@@ -107,12 +103,12 @@ func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 
 	p.ID = id
 
-	if err := h.repo.Upsert(cat, &p); err != nil {
+	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +120,7 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func param(r *http.Request, key, defaultValue string) string {

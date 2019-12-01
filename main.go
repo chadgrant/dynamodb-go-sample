@@ -69,10 +69,10 @@ func main() {
 	r.HandleFunc("/category", ph.Categories).Methods(http.MethodGet)
 
 	r.HandleFunc("/product/{category}", ph.GetPaged).Methods(http.MethodGet)
-	r.HandleFunc("/product/{category}", ph.Add).Methods(http.MethodPost)
-	r.HandleFunc("/product/{category}/{id}", ph.Upsert).Methods(http.MethodPut)
-	r.HandleFunc("/product/{category}/{id}", ph.Get).Methods(http.MethodGet)
-	r.HandleFunc("/product/{category}/{id}", ph.Delete).Methods(http.MethodDelete)
+	r.HandleFunc("/product/", ph.Add).Methods(http.MethodPost)
+	r.HandleFunc("/product/{id}", ph.Upsert).Methods(http.MethodPut)
+	r.HandleFunc("/product/{id}", ph.Get).Methods(http.MethodGet)
+	r.HandleFunc("/product/{id}", ph.Delete).Methods(http.MethodDelete)
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/")))
 

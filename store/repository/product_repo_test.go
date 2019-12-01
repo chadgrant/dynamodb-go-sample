@@ -2,6 +2,7 @@ package repository
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -85,18 +86,18 @@ func runTests(repo ProductRepository, t *testing.T) {
 func testAdd(repo ProductRepository, t *testing.T) {
 	id, _ := uuid.NewRandom()
 	p := &store.Product{
-		ID:    id.String(),
-		Name:  "Test Product " + id.String(),
-		Price: 1.00,
+		ID:       id.String(),
+		Category: strings.ToLower(categories[0]),
+		Name:     "Test Product " + id.String(),
+		Price:    1.00,
 	}
 
-	if err := repo.Upsert(categories[0], p); err != nil {
+	if err := repo.Upsert(p); err != nil {
 		t.Error(err)
 	}
 }
 
 func testGetPaged(repo ProductRepository, t *testing.T) {
-
 	dupes := make(map[string]*store.Product)
 	var products []*store.Product
 	var err error
@@ -175,7 +176,7 @@ func testUpsert(repo ProductRepository, t *testing.T) {
 
 	p.Name = p.Name + " Updated"
 
-	if err := repo.Upsert(categories[0], p); err != nil {
+	if err := repo.Upsert(p); err != nil {
 		t.Fatalf("upserting product %v", err)
 	}
 
