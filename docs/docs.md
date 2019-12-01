@@ -90,7 +90,7 @@ Delete a product. Returns a 204 (No Content) status code on success
 > DELETE /product/4438a096-09d1-4189-9fdf-a06ad54b8c7a
 
 
-## Metadata
+# Metadata
 
 Returns the metadata of the service.
 
@@ -115,7 +115,7 @@ Returns the metadata of the service.
 | upSince            | Time the service was started                             | 2015-03-12T19:40:18.877Z                   |
 | version            | Current version of the service                           | 2                                          |
 
-## HealthCheck
+# HealthCheck
 
 Returns the healthcheck of the service.
 
@@ -131,7 +131,7 @@ Returns the healthcheck of the service.
 | tests[].result    | The state of the test, may be "notrun", "running", "passed", "failed" | passed |
 | tests[].testedAt  | The last time the test was run | passed |
 
-## Liveness / GTG - Good to Go
+# Liveness / GTG - Good to Go
 
 
 > GET /health/liveness
@@ -145,7 +145,7 @@ A successful response is a 200 OK with a content of the text OK and a media type
 
 A failed response is a 5XX reponse with either a 500 or 503 response preferred. Failure to respond within a predetermined timeout typically 2 seconds is also treated as a failure.
 
-## Readiness / Service Canary
+# Readiness / Service Canary
 
 > GET /health/readiness
 
@@ -155,13 +155,13 @@ A successful response is a 200 OK with a content of the text "OK" (including quo
 
 A failed response is a 5XX reponse with either a 500 or 503 response preferred. Failure to respond within a predetermined timeout typically 2 seconds is also treated as a failure.
 
-## Debug Environment Name
+# Debug Environment Name
 
 Echo's back the configured environment name. Typically PRODUCTION,STAGING,DEVELOPMENT
 
 > GET /debug/environment
 
-## Debug Headers
+# Debug Headers
 
 Echo's back the headers sent to the service. Extremely useful in debugging CDN/Edge/Load balancer headers.
 
@@ -176,9 +176,8 @@ Echo's back the headers sent to the service. Extremely useful in debugging CDN/E
 }
 ```
 
-## Debug Error
+# Debug Error
 
 Useful to test error recovery, logging systems, etc.. intentionally throws exception/panics
 
 > GET /debug/error
-

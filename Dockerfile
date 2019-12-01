@@ -7,28 +7,21 @@ ARG build_branch
 ARG build_user
 ARG build_number
 ARG build_group
-
-COPY main.go /go/src/github.com/chadgrant/$application/
-COPY store /go/src/github.com/chadgrant/$application/store/
+ENV APPLICATION=$application FRIENDLY=$friendly BUILD_HASH=$build_hash BUILD_BRANCH=$build_branch BUILD_USER=$build_user BUILD_NUMER=$build_number BUILD_GROUP=$build_group
 
 WORKDIR /go/src/github.com/chadgrant/$application/
 
+COPY makefile .
+COPY main.go . 
+COPY store ./store/
+
 RUN go get ./... && \
-    go build -o /go/bin/goapp && \
-    echo "application=$application">/go/bin/metadata.txt && \
-    echo "friendly=$friendly">>/go/bin/metadata.txt && \
-    echo "build_compiler=$(go version)">>/go/bin/metadata.txt && \
-    echo "build_date=$(date -u)">>/go/bin/metadata.txt && \
-    echo "build_hash=$build_hash">>/go/bin/metadata.txt && \
-    echo "build_branch=$build_branch">>/go/bin/metadata.txt && \
-    echo "build_group=$build_group">>/go/bin/metadata.txt && \
-    echo "build_user=$build_user">>/go/bin/metadata.txt && \   
-    echo "build_number=$build_number">>/go/bin/metadata.txt
+    BUILDOUT=/go/bin/goapp make build
+
 FROM alpine:3.10.3
 RUN apk add --no-cache ca-certificates libc6-compat 
 WORKDIR /app
 COPY docs /app/docs/
 COPY data /app/data/
 COPY --from=builder /go/bin/goapp /app/
-COPY --from=builder /go/bin/metadata.txt /app/
 ENTRYPOINT ./goapp

@@ -30,3 +30,9 @@ make docker-test
 ```bash
 make docker-clean
 ```
+
+## Building locally
+```bash
+make get
+make build
+```

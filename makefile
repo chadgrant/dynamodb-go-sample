@@ -1,24 +1,29 @@
-ifndef BUILD_GROUP
-	BUILD_GROUP=sample-group
-endif
+APPLICATION?=application_name
+FRIENDLY?=Friendly Name
+BUILD_NUMBER?=1.0.0
+BUILD_GROUP?=sample-group
+BUILD_BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
+BUILD_HASH?=$(shell git rev-parse HEAD)
+BUILD_DATE?=$(shell date -u +%s)
 
-ifndef BUILD_NUMBER
-	BUILD_NUMBER=1.0.0
-endif
-
-ifndef BUILD_BRANCH
-	BUILD_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-endif
-
-ifndef BUILD_HASH
-	BUILD_HASH := $(shell git rev-parse HEAD)
-endif
-
-ifndef BUILD_USER
 ifdef BUILD_HASH
-	BUILD_USER := $(shell git --no-pager show -s --format='%ae' $(BUILD_HASH))
+	BUILD_USER?=$(shell git --no-pager show -s --format='%ae' $(BUILD_HASH))
 endif
+
+ifdef BUILDOUT
+	OUTPUT=-o ${BUILDOUT}
 endif
+
+PKG=github.com/chadgrant/go/http/infra
+LDFLAGS += -X '${PKG}.Application=${APPLICATION}'
+LDFLAGS += -X '${PKG}.Friendly=${FRIENDLY}'
+LDFLAGS += -X '${PKG}.BuildNumber=${BUILD_NUMBER}'
+LDFLAGS += -X '${PKG}.BuiltBy=${BUILD_USER}'
+LDFLAGS += -X '${PKG}.BuiltWhen=${BUILD_DATE}'
+LDFLAGS += -X '${PKG}.GitSha1=${BUILD_HASH}'
+LDFLAGS += -X '${PKG}.GitBranch=${BUILD_BRANCH}'
+LDFLAGS += -X '${PKG}.GroupID=${BUILD_GROUP}'
+LDFLAGS += -X '${PKG}.CompilerVersion=$(shell go version)'
 
 .PHONY: help
 
@@ -34,8 +39,8 @@ clean:
 get:
 	go get -u ./...
 
-build: get
-	go build
+build:
+	go build ${OUTPUT} -ldflags "-s ${LDFLAGS}"
 
 test: get
 	go test ./... -v
