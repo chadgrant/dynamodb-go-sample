@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/chadgrant/dynamodb-go-sample/store"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/chadgrant/dynamodb-go-sample/store"
 )
 
 type DynamoDBProductRepository struct {
@@ -34,10 +33,11 @@ func (r *DynamoDBProductRepository) GetPaged(category string, limit int, lastID 
 			":c": {S: aws.String(strings.ToLower(category))},
 		},
 	}
+
 	if len(lastID) > 0 {
 		input.ExclusiveStartKey = map[string]*dynamodb.AttributeValue{
 			"id":       {S: aws.String(lastID)},
-			"category": {S: aws.String(category)},
+			"category": {S: aws.String(strings.ToLower(category))},
 			"price":    {N: aws.String(fmt.Sprintf("%.2f", lastPrice))},
 		}
 	}
@@ -81,7 +81,6 @@ func (r *DynamoDBProductRepository) Get(productID string) (*store.Product, error
 }
 
 func (r *DynamoDBProductRepository) Upsert(category string, product *store.Product) error {
-
 	av, err := dynamodbattribute.MarshalMap(product)
 	if err != nil {
 		return fmt.Errorf("error marshalling %v", err)

@@ -5,15 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chadgrant/go/http/infra"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
+	"github.com/chadgrant/go/http/infra"
 	"github.com/google/uuid"
 )
 
@@ -119,9 +117,10 @@ func testGetPaged(repo ProductRepository, t *testing.T) {
 	last := ""
 	lastPrice := float64(0)
 	total, visited := int64(0), int64(0)
+	size := 25
 
 	for {
-		products, total, err = repo.GetPaged(categories[0], 25, last, lastPrice)
+		products, total, err = repo.GetPaged(categories[0], size, last, lastPrice)
 		if err != nil {
 			t.Fatalf("get paged %v", err)
 		}
@@ -139,7 +138,7 @@ func testGetPaged(repo ProductRepository, t *testing.T) {
 			dupes[p.ID] = p
 		}
 
-		if len(products) < 25 {
+		if len(products) < size {
 			break
 		}
 

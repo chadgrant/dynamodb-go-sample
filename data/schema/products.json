@@ -1,36 +1,47 @@
 {
     "TableName": "products",
-    "AttributeDefinitions": [{
-        "AttributeName": "id",
-        "AttributeType": "S"
-    },{
-        "AttributeName": "category",
-        "AttributeType": "S"
-    },{
-        "AttributeName": "price",
-        "AttributeType": "N"
-    }],
-    "KeySchema": [{
-        "AttributeName": "id",
-        "KeyType": "HASH"
-    }],
-    "GlobalSecondaryIndexes": [{
-        "IndexName": "price-index",
-        "Projection": {
-            "ProjectionType": "ALL"
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "id",
+            "AttributeType": "S"
         },
-		"KeySchema": [{
-            "AttributeName":"category",
-            "KeyType": "HASH"
-        },{
-            "AttributeName":"price",
-            "KeyType": "RANGE"
-        }],
-        "ProvisionedThroughput": {
-            "ReadCapacityUnits": 10,
-            "WriteCapacityUnits": 5
+        {
+            "AttributeName": "category",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "price",
+            "AttributeType": "N"
         }
-    }],
+    ],
+    "KeySchema": [
+        {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "price-index",
+            "Projection": {
+                "ProjectionType": "ALL"
+            },
+            "KeySchema": [
+                {
+                    "AttributeName": "category",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "price",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "ProvisionedThroughput": {
+                "ReadCapacityUnits": 10,
+                "WriteCapacityUnits": 5
+            }
+        }
+    ],
     "ProvisionedThroughput": {
         "ReadCapacityUnits": 10,
         "WriteCapacityUnits": 5
