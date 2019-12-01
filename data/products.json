@@ -1,5 +1,5 @@
 {
-    "Accessory": [
+    "accessory": [
         {
             "id": "39ddb0d6-7418-4be3-864d-7e176f7ac255",
             "name": "Test Accessory 39ddb0d6-7418-4be3-864d-7e176f7ac255",
@@ -601,7 +601,7 @@
             "description": "You should buy this Accessory, it's awesome. I have 2. You'll love it. Trust me."
         }
     ],
-    "Belts": [
+    "belts": [
         {
             "id": "145eef25-8966-4cbd-9381-a05af9094437",
             "name": "Test Belts 145eef25-8966-4cbd-9381-a05af9094437",
@@ -1203,7 +1203,7 @@
             "description": "You should buy this Belts, it's awesome. I have 2. You'll love it. Trust me."
         }
     ],
-    "Hats": [
+    "hats": [
         {
             "id": "4438a096-09d1-4189-9fdf-a06ad54b8c7a",
             "name": "Test Hats 4438a096-09d1-4189-9fdf-a06ad54b8c7a",
@@ -1805,7 +1805,7 @@
             "description": "You should buy this Hats, it's awesome. I have 2. You'll love it. Trust me."
         }
     ],
-    "Pants": [
+    "pants": [
         {
             "id": "60e06023-3fcc-4fc0-86cc-bdc881f00792",
             "name": "Test Pants 60e06023-3fcc-4fc0-86cc-bdc881f00792",
@@ -2407,7 +2407,7 @@
             "description": "You should buy this Pants, it's awesome. I have 2. You'll love it. Trust me."
         }
     ],
-    "Shirts": [
+    "shirts": [
         {
             "id": "f6f6c24e-9167-463b-b1cd-19e1852e2416",
             "name": "Test Shirts f6f6c24e-9167-463b-b1cd-19e1852e2416",
@@ -3009,7 +3009,7 @@
             "description": "You should buy this Shirts, it's awesome. I have 2. You'll love it. Trust me."
         }
     ],
-    "Shoes": [
+    "shoes": [
         {
             "id": "60c8583f-d957-4a40-a95b-27cde8ff73de",
             "name": "Test Shoes 60c8583f-d957-4a40-a95b-27cde8ff73de",
@@ -3611,7 +3611,7 @@
             "description": "You should buy this Shoes, it's awesome. I have 2. You'll love it. Trust me."
         }
     ],
-    "Socks": [
+    "socks": [
         {
             "id": "4f220352-214c-467f-82c1-ddb6ee88da72",
             "name": "Test Socks 4f220352-214c-467f-82c1-ddb6ee88da72",
@@ -4213,7 +4213,7 @@
             "description": "You should buy this Socks, it's awesome. I have 2. You'll love it. Trust me."
         }
     ],
-    "Ties": [
+    "ties": [
         {
             "id": "7e706339-1deb-49b4-87ae-acbc5885be8a",
             "name": "Test Ties 7e706339-1deb-49b4-87ae-acbc5885be8a",

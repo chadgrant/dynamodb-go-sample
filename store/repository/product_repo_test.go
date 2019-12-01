@@ -3,6 +3,9 @@ package repository
 import (
 	"os"
 	"testing"
+	"time"
+
+	"github.com/chadgrant/go/http/infra"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -29,28 +32,32 @@ func TestIntegration(t *testing.T) {
 		ep = "http://localhost:8000"
 	}
 
-	sess, config := session.Must(session.NewSession()), &aws.Config{
+	dyn := dynamodb.New(session.Must(session.NewSession()), &aws.Config{
 		Region:      aws.String("us-east-1"),
 		Credentials: credentials.NewStaticCredentials("123", "123", ""),
 		Endpoint:    aws.String(ep),
+	})
+
+	for i := 0; i < 3; i++ {
+		dynamo.CreateTables(dyn, true, "../../data/schema")
+
+		if dynamo.Health(dyn, "products").Result == infra.Healthy {
+			break
+		}
+		time.Sleep(500)
 	}
 
-	if err := dynamo.CreateTables(dynamodb.New(sess, config), true, "../../data/schema"); err != nil {
-		t.Fatalf("creating tables %v", err)
-		return
+	if dynamo.Health(dyn, "products").Result != infra.Healthy {
+		t.Fatal("could not contact dynamo")
 	}
 
-	runTests(dynamo.NewProductRepository("products", sess, config), t)
+	runTests(dynamo.NewProductRepository("products", dyn), t)
 }
 
 func runTests(repo ProductRepository, t *testing.T) {
 	if err := setup(repo); err != nil {
 		t.Fatalf("setup failed %v", err)
 	}
-
-	t.Run("Add", func(t *testing.T) {
-		testAdd(repo, t)
-	})
 
 	t.Run("GetSingle", func(t *testing.T) {
 		testGet(repo, t)
@@ -62,6 +69,10 @@ func runTests(repo ProductRepository, t *testing.T) {
 
 	t.Run("Upsert", func(t *testing.T) {
 		testUpsert(repo, t)
+	})
+
+	t.Run("Add", func(t *testing.T) {
+		testAdd(repo, t)
 	})
 
 	t.Run("Delete", func(t *testing.T) {
@@ -105,14 +116,14 @@ func testGetPaged(repo ProductRepository, t *testing.T) {
 	dupes := make(map[string]*store.Product)
 	var products []*store.Product
 	var err error
-	var last string
+	last := ""
 	lastPrice := float64(0)
 	total, visited := int64(0), int64(0)
 
 	for {
 		products, total, err = repo.GetPaged(categories[0], 25, last, lastPrice)
 		if err != nil {
-			t.Fatal(err)
+			t.Fatalf("get paged %v", err)
 		}
 
 		for i, p := range products {

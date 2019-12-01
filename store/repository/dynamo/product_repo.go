@@ -2,11 +2,11 @@ package dynamo
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
@@ -16,10 +16,10 @@ type DynamoDBProductRepository struct {
 	dynamo *dynamodb.DynamoDB
 }
 
-func NewProductRepository(table string, sess client.ConfigProvider, config *aws.Config) *DynamoDBProductRepository {
+func NewProductRepository(table string, dyn *dynamodb.DynamoDB) *DynamoDBProductRepository {
 	return &DynamoDBProductRepository{
 		table:  table,
-		dynamo: dynamodb.New(sess, config),
+		dynamo: dyn,
 	}
 }
 
@@ -27,19 +27,18 @@ func (r *DynamoDBProductRepository) GetPaged(category string, limit int, lastID 
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(r.table),
 		IndexName:              aws.String("price-index"),
+		Limit:                  aws.Int64(int64(limit)),
+		ScanIndexForward:       aws.Bool(false),
 		KeyConditionExpression: aws.String("category = :c"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":c": {S: aws.String(category)},
+			":c": {S: aws.String(strings.ToLower(category))},
 		},
-		Limit:            aws.Int64(int64(limit)),
-		ScanIndexForward: aws.Bool(false),
 	}
 	if len(lastID) > 0 {
-
 		input.ExclusiveStartKey = map[string]*dynamodb.AttributeValue{
 			"id":       {S: aws.String(lastID)},
 			"category": {S: aws.String(category)},
-			"price":    {N: aws.String(fmt.Sprint(lastPrice))},
+			"price":    {N: aws.String(fmt.Sprintf("%.2f", lastPrice))},
 		}
 	}
 	resp, err := r.dynamo.Query(input)
@@ -88,6 +87,7 @@ func (r *DynamoDBProductRepository) Upsert(category string, product *store.Produ
 		return fmt.Errorf("error marshalling %v", err)
 	}
 
+	av["price"].N = aws.String(fmt.Sprintf("%.2f", product.Price))
 	av["category"] = &dynamodb.AttributeValue{S: aws.String(category)}
 
 	_, err = r.dynamo.PutItem(&dynamodb.PutItemInput{

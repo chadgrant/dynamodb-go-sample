@@ -7,10 +7,10 @@ services:
        context: ./
        args:
          - application=dynamodb-go-sample
-         - friendly="Sample API"
-         - build_hash=${HASH:-localbuild_hashmissing}
-         - build_user=${USER}
-         - build_branch=${BRANCH:-nobranch}
+         - friendly=Sample API
+         - build_hash=${BUILD_HASH:-localbuild_hashmissing}
+         - build_user=${BUILD_USER:-unknown}
+         - build_branch=${BUILD_BRANCH:-nobranch}
          - build_number=${BUILD_NUMBER:-1.0.0}
          - build_group=${BUILD_GROUP:-nogroupspecified}
      image: chadgrant/sample_api:${BUILD_NUMBER:-1.0.0}
@@ -20,7 +20,10 @@ services:
        - 5000:8080
      environment:
         DYNAMO_ENDPOINT: "http://data:8000"       
-
+        AWS_REGION: "us-east-1"
+        AWS_ACCESS_KEY_ID: 123
+        AWS_SECRET_ACCESS_KEY: 123
+        
    tests:
       build:
        context: ./

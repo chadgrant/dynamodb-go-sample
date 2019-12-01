@@ -8,11 +8,18 @@ import (
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
+	"github.com/chadgrant/go/http/infra"
 	"github.com/gorilla/mux"
 )
 
 type ProductHandler struct {
 	repo repository.ProductRepository
+}
+
+type pagedProducts struct {
+	Results []*store.Product `json:"results"`
+	Next    string           `json:"next,omitempty"`
+	Total   int64            `json:"total"`
 }
 
 func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
@@ -23,7 +30,7 @@ func (h *ProductHandler) Categories(w http.ResponseWriter, r *http.Request) {
 	//faked
 	var categories = []string{"Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory"}
 
-	json.NewEncoder(w).Encode(categories)
+	returnJson(w, r, categories)
 }
 
 func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
@@ -33,11 +40,22 @@ func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 	last := param(r, "last", "")
 	lastprice, _ := strconv.ParseFloat(param(r, "lastprice", "0"), 2)
 
-	products, _, err := h.repo.GetPaged(cat, 25, last, lastprice)
+	products, total, err := h.repo.GetPaged(cat, 25, last, lastprice)
 	if err != nil {
 		return
 	}
-	json.NewEncoder(w).Encode(products)
+
+	next := ""
+	if len(products) > 0 {
+		p := products[len(products)-1]
+		next = fmt.Sprintf("/product/%s/?last=%s&lastPrice=%.2f", cat, p.ID, p.Price)
+	}
+
+	returnJson(w, r, &pagedProducts{
+		Results: products,
+		Total:   total,
+		Next:    next,
+	})
 }
 
 func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +71,8 @@ func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	json.NewEncoder(w).Encode(p)
+
+	returnJson(w, r, p)
 }
 
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
@@ -114,4 +133,12 @@ func param(r *http.Request, key, defaultValue string) string {
 		return v[0]
 	}
 	return defaultValue
+}
+
+func returnJson(w http.ResponseWriter, r *http.Request, o interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(o); err != nil {
+		infra.Error(w, r, http.StatusInternalServerError, err)
+	}
 }

@@ -6,33 +6,63 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
 	"github.com/chadgrant/go/http/infra"
+	"github.com/chadgrant/go/http/infra/gorilla"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	host := *flag.String("host", "0.0.0.0", "default binding 0.0.0.0")
-	port := *flag.Int("port", 8080, "default port 8080")
+	host := *flag.String("host", infra.GetEnvVar("SVC_HOST", "0.0.0.0"), "default binding 0.0.0.0")
+	port := *flag.Int("port", infra.GetEnvVarInt("SVC_PORT", 8080), "default port 8080")
+	mock := *flag.Bool("mock", infra.GetEnvVarBool("SVC_MOCK_DATA", false), "use mock database")
+	createTables := *flag.Bool("createtables", infra.GetEnvVarBool("SVC_CREATE_TABLES", true), "create tables")
+	populate := *flag.Bool("populate", infra.GetEnvVarBool("SVC_POPULATE_DATA", true), "populate database")
+	region := *flag.String("region", infra.GetEnvVar("AWS_REGION", "us-east-1"), "aws region")
+	accessKey := *flag.String("accessKey", infra.GetEnvVar("AWS_ACCESS_KEY_ID", "123"), "aws access key")
+	keySecret := *flag.String("keySecret", infra.GetEnvVar("AWS_SECRET_ACCESS_KEY", "123"), "aws access key secret")
+	sessionToken := *flag.String("sessionToken", infra.GetEnvVar("AWS_SESSION_TOKEN", ""), "aws session token")
+	endpoint := *flag.String("endpoint", infra.GetEnvVar("DYNAMO_ENDPOINT", "http://localhost:8000"), "dynamo endpoint url")
+	table := *flag.String("table", infra.GetEnvVar("DYNAMO_TABLE", "products"), "dynamo table")
 	flag.Parse()
 
-	//repo := dynamo.NewProductRepository()
-	repo := repository.NewMockProductRepository()
+	dyn := dynamodb.New(session.Must(session.NewSession()), &aws.Config{
+		Region:      aws.String(region),
+		Credentials: credentials.NewStaticCredentials(accessKey, keySecret, sessionToken),
+		Endpoint:    aws.String(endpoint),
+	})
 
-	pop := repository.NewPopulator(repo)
-	if err := pop.Load("data/products.json"); err != nil {
-		log.Fatalf("loading products %v", err)
-		return
+	var repo repository.ProductRepository
+	repo = dynamo.NewProductRepository(table, dyn)
+	if mock {
+		repo = repository.NewMockProductRepository()
+	}
+
+	if createTables {
+		log.Println("creating tables")
+		if err := dynamo.CreateTables(dyn, true, "data/schema"); err != nil {
+			log.Fatalf("creating table %v", err)
+			return
+		}
+	}
+	if populate {
+		log.Println("populating database")
+		pop := repository.NewPopulator(repo)
+		if err := pop.Load("data/products.json"); err != nil {
+			log.Fatalf("loading products %v", err)
+			return
+		}
 	}
 
 	r := mux.NewRouter()
-	//r.Use(contentType)
-
-	infra.HandleGorilla(r)
-
-	//fs := http.FileServer(http.Dir("docs"))
-	//r.Handle("/docs/", http.StripPrefix("/docs/", fs))
+	gorilla.Handle(r)
+	r.Use(infra.Recovery)
 
 	ph := handlers.NewProductHandler(repo)
 
@@ -48,11 +78,4 @@ func main() {
 
 	log.Printf("Started, serving at %s:%d\n", host, port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), r))
-}
-
-func contentType(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
-		next.ServeHTTP(w, r)
-	})
 }

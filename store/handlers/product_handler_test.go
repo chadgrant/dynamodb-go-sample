@@ -10,12 +10,11 @@ import (
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
-	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 	"github.com/gorilla/mux"
 )
 
 func TestProductHandler(t *testing.T) {
-	repo := mock.NewProductRepository()
+	repo := repository.NewMockProductRepository()
 
 	if err := setup(repo); err != nil {
 		t.Fatal(err)
@@ -99,12 +98,12 @@ func testGetPaged(handler *ProductHandler, t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var p []store.Product
+	var p pagedProducts
 	if err := json.Unmarshal(js, &p); err != nil {
 		t.Fatal(err)
 	}
 
-	if len(p) == 0 {
+	if len(p.Results) == 0 {
 		t.Errorf("got no products back")
 	}
 }
