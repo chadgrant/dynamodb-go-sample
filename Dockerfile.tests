@@ -1,12 +1,9 @@
 FROM golang:1.13
 
-ARG application
+WORKDIR /go/src/github.com/chadgrant/dynamodb-go-sample
 
-WORKDIR /go/src/github.com/chadgrant/$application
-
-COPY main.go /go/src/github.com/chadgrant/$application
-COPY store /go/src/github.com/chadgrant/$application/store/
-COPY data /go/src/github.com/chadgrant/$application/data/
+COPY main.go . 
+COPY store ./store/
 
 RUN go get ./...
 

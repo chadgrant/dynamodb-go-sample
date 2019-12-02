@@ -26,6 +26,14 @@ make docker-build
 make docker-test
 ```
 
+## Running Integration Tests locally
+```bash
+make docker-infra
+
+export TEST_INTEGRATION=1
+go test -v ./...
+```
+
 ## Clean / delete docker images
 ```bash
 make docker-clean

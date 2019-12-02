@@ -15,20 +15,7 @@ import (
 
 func TestProductHandler(t *testing.T) {
 	repo := repository.NewMockProductRepository()
-
-	pop := repository.NewPopulator(repo)
-
-	// if err := pop.Create(100); err != nil {
-	// 	t.Fatalf("couldnt create data %v", err)
-	// }
-
-	// if err := pop.Export("../../data/products.json"); err != nil {
-	// 	t.Fatalf("couldnt export data %v", err)
-	// }
-
-	if err := pop.Load("../../data/products.json"); err != nil {
-		t.Fatalf("couldnt load data %v", err)
-	}
+	repo.Create(100)
 
 	h := NewProductHandler(repo)
 
@@ -45,6 +32,9 @@ func TestProductHandler(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		if len(prds) == 0 {
+			t.Fatalf("no products returned")
+		}
 		for _, p := range prds {
 			testGet(p.ID, h, t)
 		}
@@ -55,6 +45,9 @@ func TestProductHandler(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		if len(prds) == 0 {
+			t.Fatalf("no products returned")
+		}
 		testUpsert(prds[0], h, t)
 	})
 
@@ -62,6 +55,9 @@ func TestProductHandler(t *testing.T) {
 		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Fatal(err)
+		}
+		if len(prds) == 0 {
+			t.Fatalf("no products returned")
 		}
 		testDelete(prds[0].ID, h, t)
 	})

@@ -4,7 +4,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -16,10 +15,12 @@ import (
 )
 
 func TestMock(t *testing.T) {
-	runTests(NewMockProductRepository(), t)
+	repo := NewMockProductRepository()
+	repo.Create(100)
+	runTests(repo, t)
 }
 
-func TestIntegration(t *testing.T) {
+func TestDynamoIntegration(t *testing.T) {
 	if len(os.Getenv("TEST_INTEGRATION")) == 0 {
 		t.Log("Skipping integration tests, TEST_INTEGRATION environment variable not set")
 		return
@@ -32,35 +33,14 @@ func TestIntegration(t *testing.T) {
 
 	dyn := dynamodb.New(session.Must(session.NewSession()), &aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials("123", "123", ""),
+		Credentials: credentials.NewStaticCredentials("key", "secret", ""),
 		Endpoint:    aws.String(ep),
 	})
-
-	if err := dynamo.CreateTables(dyn, true, "../../data/schema"); err != nil {
-		t.Fatalf("couldn't create tables %v", err)
-	}
-
-	if !dynamo.IsTableActive(dyn, "products", 5*time.Second) {
-		t.Fatal("timeout waiting for table to be active")
-	}
 
 	runTests(dynamo.NewProductRepository("products", dyn), t)
 }
 
 func runTests(repo ProductRepository, t *testing.T) {
-	pop := NewPopulator(repo)
-
-	// if err := pop.Create(100); err != nil {
-	// 	t.Fatalf("couldnt create data %v", err)
-	// }
-
-	// if err := pop.Export("../../data/products.json"); err != nil {
-	// 	t.Fatalf("couldnt export data %v", err)
-	// }
-
-	if err := pop.Load("../../data/products.json"); err != nil {
-		t.Fatalf("couldnt load data %v", err)
-	}
 
 	t.Run("GetSingle", func(t *testing.T) {
 		testGet(repo, t)

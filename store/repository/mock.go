@@ -1,11 +1,18 @@
 package repository
 
 import (
+	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
+	"github.com/google/uuid"
 )
+
+//mocked/faked
+var categories = []string{"Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory"}
 
 type MockRepository struct {
 	products []*store.Product
@@ -70,6 +77,26 @@ func (r *MockRepository) Delete(productID string) error {
 	return nil
 }
 
+func (r *MockRepository) Create(max int) error {
+	for _, c := range categories {
+		for i := 0; i < max; i++ {
+			id, _ := uuid.NewRandom()
+			p := &store.Product{
+				ID:          id.String(),
+				Category:    strings.ToLower(c),
+				Name:        fmt.Sprintf("Test %s %s", c, id.String()),
+				Price:       randPrice(),
+				Description: fmt.Sprintf("You should buy this %s, it's awesome. I have 2. You'll love it. Trust me.", c),
+			}
+			if err := r.Upsert(p); err != nil {
+				return fmt.Errorf("saving products %v", err)
+			}
+		}
+
+	}
+	return nil
+}
+
 func (r *MockRepository) sort() {
 	sort.Slice(r.products, func(i, j int) bool {
 		return r.products[i].Price > r.products[j].Price
@@ -83,4 +110,13 @@ func find(prds []*store.Product, id string) (int, *store.Product) {
 		}
 	}
 	return -1, nil
+}
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func randPrice() float64 {
+	min, max := 0.99, 999.99
+	r := min + rand.Float64()*(max-min)
+	return float64(int(r*100)) / 100
 }

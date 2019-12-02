@@ -22,6 +22,5 @@ FROM alpine:3.10.3
 RUN apk add --no-cache ca-certificates libc6-compat 
 WORKDIR /app
 COPY docs /app/docs/
-COPY data /app/data/
 COPY --from=builder /go/bin/goapp /app/
 ENTRYPOINT ./goapp
