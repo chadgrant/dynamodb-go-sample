@@ -12,13 +12,17 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
-      - name: Set GOPATH
-        # temporary fix
-        # see https://github.com/actions/setup-go/issues/14
+      - name: Build
         run: |
-          echo "##[set-env name=GOPATH;]$(dirname $GITHUB_WORKSPACE)"
-          echo "##[add-path]$(dirname $GITHUB_WORKSPACE)/bin"
-        shell: bash
+          export GOPATH=$HOME/go
+          export GOBIN=$(go env GOPATH)/bin
+          export PATH=$PATH:$GOPATH
+          export PATH=$PATH:$GOBIN
+          mkdir -p $GOPATH/pkg
+          mkdir -p $GOBIN
+          mkdir -p $GOPATH/src/github.com/$GITHUB_REPOSITORY
+          mv $(pwd)/* $GOPATH/src/github.com/$GITHUB_REPOSITORY
+          cd $GOPATH/src/github.com/$GITHUB_REPOSITORY
       - name: Run Unit tests
         run: make test
         shell: bash
