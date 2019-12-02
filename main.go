@@ -40,7 +40,7 @@ func main() {
 	var repo repository.ProductRepository
 	repo = dynamo.NewProductRepository(table, dyn)
 	if mock {
-		repo = repository.NewMockProductRepository()
+		repo = repository.NewMockProductRepository(100)
 	}
 
 	r := mux.NewRouter()
@@ -53,9 +53,9 @@ func main() {
 
 	r.HandleFunc("/product/{category:[A-Za-z]+}", ph.GetPaged).Methods(http.MethodGet)
 	r.HandleFunc("/product/", ph.Add).Methods(http.MethodPost)
-	r.HandleFunc("/product/{id}", ph.Upsert).Methods(http.MethodPut)
-	r.HandleFunc("/product/{id}", ph.Get).Methods(http.MethodGet)
-	r.HandleFunc("/product/{id}", ph.Delete).Methods(http.MethodDelete)
+	r.HandleFunc("/product/{id:[a-z0-9]{36}}", ph.Upsert).Methods(http.MethodPut)
+	r.HandleFunc("/product/{id:[a-z0-9]{36}}", ph.Get).Methods(http.MethodGet)
+	r.HandleFunc("/product/{id:[a-z0-9]{36}}", ph.Delete).Methods(http.MethodDelete)
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/")))
 

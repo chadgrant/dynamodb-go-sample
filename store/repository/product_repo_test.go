@@ -15,9 +15,7 @@ import (
 )
 
 func TestMock(t *testing.T) {
-	repo := NewMockProductRepository()
-	repo.Create(100)
-	runTests(repo, t)
+	runTests(NewMockProductRepository(100), t)
 }
 
 func TestDynamoIntegration(t *testing.T) {

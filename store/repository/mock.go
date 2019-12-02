@@ -19,11 +19,13 @@ type MockRepository struct {
 	lookup   map[string]string
 }
 
-func NewMockProductRepository() *MockRepository {
-	return &MockRepository{
+func NewMockProductRepository(max int) *MockRepository {
+	m := &MockRepository{
 		products: make([]*store.Product, 0),
 		lookup:   make(map[string]string),
 	}
+	m.create(max)
+	return m
 }
 
 func (r *MockRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, int64, error) {
@@ -77,7 +79,7 @@ func (r *MockRepository) Delete(productID string) error {
 	return nil
 }
 
-func (r *MockRepository) Create(max int) error {
+func (r *MockRepository) create(max int) error {
 	for _, c := range categories {
 		for i := 0; i < max; i++ {
 			id, _ := uuid.NewRandom()
