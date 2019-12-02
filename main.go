@@ -51,7 +51,7 @@ func main() {
 
 	r.HandleFunc("/category", ph.Categories).Methods(http.MethodGet)
 
-	r.HandleFunc("/product/{category}", ph.GetPaged).Methods(http.MethodGet)
+	r.HandleFunc("/product/{category:[A-Za-z]+}", ph.GetPaged).Methods(http.MethodGet)
 	r.HandleFunc("/product/", ph.Add).Methods(http.MethodPost)
 	r.HandleFunc("/product/{id}", ph.Upsert).Methods(http.MethodPut)
 	r.HandleFunc("/product/{id}", ph.Get).Methods(http.MethodGet)
