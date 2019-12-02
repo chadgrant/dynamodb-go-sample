@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          path: $HOME/go/src/github.com/$GITHUB_REPOSITORY
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
