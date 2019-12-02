@@ -2,34 +2,7 @@ name: Docker Image CI
 
 on: [push, pull_request]
 
-jobs:  
-  test-go:
-    name: Test Go
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          path: $HOME/go/src/github.com/$GITHUB_REPOSITORY
-      - name: Set up Go
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-      - name: Run Go Test
-        run: |
-          export GOPATH=$HOME/go
-          export GOBIN=$(go env GOPATH)/bin
-          export PATH=$PATH:$GOPATH
-          export PATH=$PATH:$GOBIN
-          mkdir -p $GOPATH/pkg
-          mkdir -p $GOBIN
-          mkdir -p $GOPATH/src/github.com/$GITHUB_REPOSITORY
-          mv $(pwd)/* $GOPATH/src/github.com/$GITHUB_REPOSITORY
-          cd $GOPATH/src/github.com/$GITHUB_REPOSITORY
-          make test
-        shell: bash
-        env:
-           GOPROXY: "https://proxy.golang.org"
-           
+jobs:      
   test-docker:
     name: Build & Test Docker Images
     runs-on: ubuntu-latest
