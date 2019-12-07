@@ -11,7 +11,7 @@ ENV APPLICATION=$application FRIENDLY=$friendly BUILD_HASH=$build_hash BUILD_BRA
 
 WORKDIR /go/src/github.com/chadgrant/$application/
 
-COPY makefile .
+COPY Makefile .
 COPY main.go . 
 COPY store ./store/
 

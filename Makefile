@@ -25,11 +25,7 @@ LDFLAGS += -X '${PKG}.GitBranch=${BUILD_BRANCH}'
 LDFLAGS += -X '${PKG}.GroupID=${BUILD_GROUP}'
 LDFLAGS += -X '${PKG}.CompilerVersion=$(shell go version)'
 
-.PHONY: help
-
-help: ## This help.
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-
+.PHONY: build
 .DEFAULT_GOAL := help
 .EXPORT_ALL_VARIABLES:
 

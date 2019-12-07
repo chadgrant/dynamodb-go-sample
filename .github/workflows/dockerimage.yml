@@ -1,0 +1,17 @@
+name: Docker Image CI
+on: [push, pull_request]
+jobs:
+  #test-go:
+   #name: Run Go Test
+   #runs-on: ubuntu-latest
+   #steps:
+     #- uses: cedrickring/golang-action@1.4.1
+  test-docker:
+    name: Build & Test Docker Images
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build Docker images
+      run: make docker-build
+    - name: Test Docker Images
+      run: make docker-test
