@@ -14,15 +14,13 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    const cat = this.state.category.toLowerCase();
-
-    fetch(`${API_ENDPOINT}/product/${cat}`)
+    fetch(`${API_ENDPOINT}/product/${this.state.category.toLowerCase()}`)
     .then(res => res.json())
     .then((data) => {
-      this.setState({
-          category: cat,
+      this.setState((prev) => ({
+          category: prev.category,
           products: data.results
-      });
+      }));
     })
     .catch(console.log)
   }
