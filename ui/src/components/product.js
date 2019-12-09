@@ -8,17 +8,20 @@ export default class Product extends Component {
       this.editSubmit = this.editSubmit.bind(this);
       this.delete = this.delete.bind(this);
     }
+    
     delete(){
         this.props.delete(this.props.product.id);
     }
+
     edit(){
-      this.setState((prevState,props) => ({
-        isEdit : !prevState.isEdit
+      this.setState((prev) => ({
+        isEdit : !prev.isEdit
       }));
     }
+
     editSubmit(){
-      this.setState((prevState,props) => ({
-        isEdit : !prevState.isEdit
+      this.setState((prev) => ({
+        isEdit : !prev.isEdit
       }));
        
       this.props.edit(
@@ -28,10 +31,28 @@ export default class Product extends Component {
         this.descriptionInput.value
       );
     }
+    
     render() {
-      const product = this.props.product;
+      return (this.state.isEdit === true ? 
+        this.renderEdit(this.props.product) : 
+        this.renderList(this.props.product)
+      );
+    }
+
+    renderList(product) {
       return (
-        this.state.isEdit === true ? (
+        <tr key={product.id}>
+          <td>{product.name}</td>
+          <td>${product.price}</td>
+          <td>{product.description}</td>
+          <td><i className="far fa-edit" onClick={this.edit}></i></td>
+          <td><i className="fas fa-trash" onClick={this.delete}></i></td>
+        </tr>
+      );
+    }
+
+    renderEdit(product) {
+      return (
           <tr className="bg-warning" key={product.id}>
             <td>
               <input ref={nameInput => this.nameInput = nameInput} defaultValue ={product.name} size="50"/>
@@ -47,15 +68,6 @@ export default class Product extends Component {
             </td>
             <td><i className="fas fa-trash"></i></td>
           </tr>
-        ) : (
-          <tr key={product.id}>
-            <td>{product.name}</td>
-            <td>${product.price}</td>
-            <td>{product.description}</td>
-            <td><i className="far fa-edit" onClick={this.edit}></i></td>
-            <td><i className="fas fa-trash" onClick={this.delete}></i></td>
-          </tr>
-        )
       );
     }
   }

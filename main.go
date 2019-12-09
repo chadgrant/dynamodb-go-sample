@@ -54,12 +54,19 @@ func main() {
 
 	r.HandleFunc("/product/{category:[A-Za-z]+}", ph.GetPaged).Methods(http.MethodGet)
 	r.HandleFunc("/product/", ph.Add).Methods(http.MethodPost)
-	r.HandleFunc("/product/{id:[a-z0-9]{36}}", ph.Upsert).Methods(http.MethodPut)
-	r.HandleFunc("/product/{id:[a-z0-9]{36}}", ph.Get).Methods(http.MethodGet)
-	r.HandleFunc("/product/{id:[a-z0-9]{36}}", ph.Delete).Methods(http.MethodDelete)
+	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Upsert).Methods(http.MethodPut)
+	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Get).Methods(http.MethodGet)
+	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Delete).Methods(http.MethodDelete)
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/")))
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+		MaxAge:           86400,
+	})
+
 	log.Printf("Started, serving at %s:%d\n", host, port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), cors.Default().Handler(r)))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), c.Handler(r)))
 }

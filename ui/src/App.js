@@ -1,6 +1,6 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import './App.css';
-import Products from './components/products'
+import Products from './components/products';
 
 const API_ENDPOINT = window.API_ENDPOINT ? window.API_ENDPOINT : 'http://localhost:5000';
 
@@ -14,25 +14,49 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    fetch(API_ENDPOINT + '/product/' + this.state.category.toLowerCase())
+    const cat = this.state.category.toLowerCase();
+
+    fetch(`${API_ENDPOINT}/product/${cat}`)
     .then(res => res.json())
     .then((data) => {
-      this.setState((prev, _) =>  ({
-          category: prev.category,
+      this.setState({
+          category: cat,
           products: data.results
-      }));
+      });
     })
     .catch(console.log)
   }
 
   add(name, price, description) {
+    // fetch(`${API_ENDPOINT}/product/`, {
+    //   method: 'PUT',
+    //   headers: {
+    //     'Accept': 'application/json',
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     category: this.state.category,
+    //     name: name,
+    //     price: parseFloat(price),
+    //     description: description
+    //   })
+    // })
+    // .then(console.log)
+    // .catch(console.log);
 
+  //   this.setState((prev) => ({
+  //     category: prev.category,
+  //     products: prev.products.unshift()
+  //  }));
   }
 
   delete(id) {
     let r = window.confirm("Do you want to delete this item");
     if( r === true) {
-      this.setState((prev, _) => ({
+      fetch(`${API_ENDPOINT}/product/${id}`,{method: 'DELETE'})
+      .catch(console.log);
+
+      this.setState((prev) => ({
         category: prev.category,
         products: prev.products.filter(p => p.id !== id)
      }));
@@ -40,7 +64,21 @@ export default class App extends Component {
   }
 
   edit(product, name, price, description) {
-    this.setState((prev, _) => ({
+    product.name = name;
+    product.price = parseFloat(price);
+    product.description = description;
+    
+    fetch(`${API_ENDPOINT}/product/${product.id}`,{
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(product)
+    })
+    .catch(console.log);
+
+    this.setState((prev) => ({
       products: prev.products.map(p =>{ 
         if (p.id === product.id) {
           p.name = name;
