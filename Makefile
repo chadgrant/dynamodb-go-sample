@@ -51,6 +51,11 @@ docker-infra:
 	docker-compose up --no-start
 	docker-compose start data
 
+docker-infra-api:
+	docker-compose up --no-start
+	docker-compose start data
+	docker-compose start api
+
 docker-run:
 	docker-compose up --no-start
 	docker-compose start data

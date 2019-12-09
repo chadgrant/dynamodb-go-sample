@@ -16,6 +16,7 @@ import (
 	"github.com/chadgrant/go/http/infra"
 	"github.com/chadgrant/go/http/infra/gorilla"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -60,5 +61,5 @@ func main() {
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/")))
 
 	log.Printf("Started, serving at %s:%d\n", host, port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), cors.Default().Handler(r)))
 }
