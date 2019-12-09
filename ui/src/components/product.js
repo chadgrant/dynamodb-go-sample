@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 export default class Product extends Component {
     constructor(props){
       super(props);
-      this.state = {isEdit:false}
+      this.state = {isEdit:this.props.product.id === undefined};
       this.edit = this.edit.bind(this);
       this.editSubmit = this.editSubmit.bind(this);
       this.delete = this.delete.bind(this);
@@ -41,7 +41,7 @@ export default class Product extends Component {
 
     renderList(product) {
       return (
-        <tr key={product.id}>
+        <tr key={product.id} data-id={product.id}>
           <td>{product.name}</td>
           <td>${product.price}</td>
           <td>{product.description}</td>
@@ -52,8 +52,12 @@ export default class Product extends Component {
     }
 
     renderEdit(product) {
+      let delbttn = <i/>
+      if (product.id !== undefined) {
+        delbttn = <i className="fas fa-trash"/>
+      }
       return (
-          <tr className="bg-warning" key={product.id}>
+          <tr className="bg-warning" key={product.id} data-id={product.id}>
             <td>
               <input ref={nameInput => this.nameInput = nameInput} defaultValue ={product.name} size="50"/>
             </td>
@@ -66,7 +70,9 @@ export default class Product extends Component {
             <td>
               <i className="far fa-save" onClick={this.editSubmit}></i>
             </td>
-            <td><i className="fas fa-trash"></i></td>
+            <td>
+              {delbttn}
+            </td>
           </tr>
       );
     }

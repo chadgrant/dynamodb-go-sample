@@ -87,7 +87,7 @@ func (r *DynamoDBProductRepository) Upsert(product *store.Product) error {
 	}
 
 	av["price"].N = aws.String(fmt.Sprintf("%.2f", product.Price))
-	av["category"] = &dynamodb.AttributeValue{S: aws.String(product.Category)}
+	av["category"] = &dynamodb.AttributeValue{S: aws.String(strings.ToLower(product.Category))}
 
 	_, err = r.dynamo.PutItem(&dynamodb.PutItemInput{
 		Item:      av,

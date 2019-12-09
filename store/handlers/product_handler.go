@@ -9,6 +9,7 @@ import (
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/go/http/infra"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -82,12 +83,20 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id, err := uuid.NewRandom()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	p.ID = id.String()
+
 	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Location", fmt.Sprintf("product/%s", p.ID))
+	w.Header().Set("Location", fmt.Sprintf("/product/%s", p.ID))
 	w.WriteHeader(http.StatusCreated)
 }
 

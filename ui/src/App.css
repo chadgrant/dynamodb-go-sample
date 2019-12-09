@@ -36,3 +36,17 @@
     transform: rotate(360deg);
   }
 }
+
+.btn-add, .btn-next {
+  float:right;
+  margin-left: 5px;
+}
+
+.sel-cat {
+  width: 8em;
+}
+
+.card-header{
+  font-weight: bold;
+  font-size: 1.5em;
+}

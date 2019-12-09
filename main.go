@@ -64,6 +64,7 @@ func main() {
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+		ExposedHeaders:   []string{"Location"},
 		MaxAge:           86400,
 	})
 
