@@ -28,7 +28,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("Get", func(t *testing.T) {
-		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
+		prds, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -41,7 +41,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("UpdateProduct", func(t *testing.T) {
-		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
+		prds, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -52,7 +52,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("DeleteProduct", func(t *testing.T) {
-		prds, _, err := repo.GetPaged("hats", 25, "", float64(0))
+		prds, err := repo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Fatal(err)
 		}

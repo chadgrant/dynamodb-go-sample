@@ -20,7 +20,6 @@ type ProductHandler struct {
 type pagedProducts struct {
 	Results []*store.Product `json:"results"`
 	Next    string           `json:"next,omitempty"`
-	Total   int64            `json:"total"`
 }
 
 func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
@@ -34,7 +33,7 @@ func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 	last := param(r, "last", "")
 	lastprice, _ := strconv.ParseFloat(param(r, "lastprice", "0"), 2)
 
-	products, total, err := h.repo.GetPaged(cat, 25, last, lastprice)
+	products, err := h.repo.GetPaged(cat, 25, last, lastprice)
 	if err != nil {
 		return
 	}
@@ -47,7 +46,6 @@ func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 
 	returnJson(w, r, &pagedProducts{
 		Results: products,
-		Total:   total,
 		Next:    next,
 	})
 }

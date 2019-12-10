@@ -1,22 +1,30 @@
 import React, { Component } from 'react';
 
 export default class Categories extends Component {
-    constructor(props){
-        super(props);
-        this.change = this.change.bind(this);
-     }
 
-    change(e) {
-        this.props.changeCategory(e.target.value)
+    state = {
+        category : this.props.category
+    }
+
+    onChange = (e) =>{
+        this.setState({category: e.target.value});
+        this.props.changeCategory(e.target.value);
     }
 
     render() {
         return (
-            <select className="sel-cat" onChange={this.change}>
-            {this.props.categories.map((cat) => (
-                <option key={cat}>{cat}</option>    
-            ))}
-            </select>
+            <React.Fragment>
+                Products : <select className="sel-cat" onChange={this.onChange}>
+                {this.props.categories.map(this.renderItem)}
+                </select>
+            </React.Fragment>
         )
+    }
+
+    renderItem = (cat) => {
+        return cat === this.state.category ? 
+            (<option key={cat} selected="true">{cat}</option>) 
+            : 
+            (<option key={cat}>{cat}</option>)
     }
 }

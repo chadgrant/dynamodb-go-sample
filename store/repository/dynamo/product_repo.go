@@ -22,7 +22,7 @@ func NewProductRepository(table string, dyn *dynamodb.DynamoDB) *DynamoDBProduct
 	}
 }
 
-func (r *DynamoDBProductRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, int64, error) {
+func (r *DynamoDBProductRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, error) {
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(r.table),
 		IndexName:              aws.String("price-index"),
@@ -43,19 +43,19 @@ func (r *DynamoDBProductRepository) GetPaged(category string, limit int, lastID 
 	}
 	resp, err := r.dynamo.Query(input)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	prds := make([]*store.Product, len(resp.Items))
 	for i, item := range resp.Items {
 		p := &store.Product{}
 		if err := dynamodbattribute.UnmarshalMap(item, &p); err != nil {
-			return nil, 0, fmt.Errorf("error mapping item %v", err)
+			return nil, fmt.Errorf("error mapping item %v", err)
 		}
 		prds[i] = p
 	}
 
-	return prds, *resp.Count, nil
+	return prds, nil
 }
 
 func (r *DynamoDBProductRepository) Get(productID string) (*store.Product, error) {

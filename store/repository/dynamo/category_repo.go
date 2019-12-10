@@ -1,6 +1,8 @@
 package dynamo
 
 import (
+	"sort"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -32,6 +34,7 @@ func (r *DynamoDBCategoryRepository) GetAll() ([]string, error) {
 		arr[i] = *r["category"].S
 	}
 
+	sort.Strings(arr)
 	return arr, nil
 }
 

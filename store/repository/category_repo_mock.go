@@ -1,5 +1,7 @@
 package repository
 
+import "sort"
+
 type MockCategoryRepository struct {
 	categories map[string]interface{}
 }
@@ -19,6 +21,7 @@ func (r *MockCategoryRepository) GetAll() ([]string, error) {
 	for k := range r.categories {
 		arr = append(arr, k)
 	}
+	sort.Strings(arr)
 	return arr, nil
 }
 

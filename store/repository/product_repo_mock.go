@@ -27,7 +27,7 @@ func NewMockProductRepository(repo CategoryRepository, max int) *MockRepository 
 	return m
 }
 
-func (r *MockRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, int64, error) {
+func (r *MockRepository) GetPaged(category string, limit int, lastID string, lastPrice float64) ([]*store.Product, error) {
 
 	prds := make([]*store.Product, 0)
 	for _, p := range r.products {
@@ -47,7 +47,7 @@ func (r *MockRepository) GetPaged(category string, limit int, lastID string, las
 		end = len(prds)
 	}
 
-	return prds[start:end], int64(len(prds)), nil
+	return prds[start:end], nil
 }
 
 func (r *MockRepository) Get(productID string) (*store.Product, error) {

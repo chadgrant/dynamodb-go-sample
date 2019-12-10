@@ -1,25 +1,22 @@
 import React, { Component } from 'react';
 
 export default class Product extends Component {
-    constructor(props){
-      super(props);
-      this.state = {isEdit:this.props.product.id === undefined};
-      this.edit = this.edit.bind(this);
-      this.editSubmit = this.editSubmit.bind(this);
-      this.delete = this.delete.bind(this);
-    }
+
+    state = {
+      isEdit:this.props.product.id === undefined
+    };
     
-    delete(){
+    delete = () => {
         this.props.delete(this.props.product.id);
     }
 
-    edit(){
+    edit = () => {
       this.setState((prev) => ({
         isEdit : !prev.isEdit
       }));
     }
 
-    editSubmit(){
+    editSubmit = () => {
       this.setState((prev) => ({
         isEdit : !prev.isEdit
       }));
@@ -39,7 +36,7 @@ export default class Product extends Component {
       );
     }
 
-    renderList(product) {
+    renderList = (product) => {
       return (
         <tr key={product.id} data-id={product.id}>
           <td>{product.name}</td>
@@ -51,7 +48,7 @@ export default class Product extends Component {
       );
     }
 
-    renderEdit(product) {
+    renderEdit = (product) => {
       let delbttn = <i/>
       if (product.id !== undefined) {
         delbttn = <i className="fas fa-trash"/>

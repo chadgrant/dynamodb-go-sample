@@ -2,6 +2,7 @@ package repository
 
 import (
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -58,6 +59,10 @@ func testCategoryGet(repo CategoryRepository, t *testing.T) {
 	}
 	if len(cats) == 0 {
 		t.Errorf("no categories returned")
+	}
+
+	if !sort.StringsAreSorted(cats) {
+		t.Errorf("categories are not sorted")
 	}
 }
 

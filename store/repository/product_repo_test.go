@@ -83,26 +83,23 @@ func testAdd(categories []string, repo ProductRepository, t *testing.T) {
 
 func testGetPaged(categories []string, repo ProductRepository, t *testing.T) {
 	dupes := make(map[string]*store.Product)
-	var products []*store.Product
-	var err error
+	var all []*store.Product
 	last := ""
 	lastPrice := float64(0)
-	total, visited := int64(0), int64(0)
 	size := 25
 
 	for {
-		products, total, err = repo.GetPaged(categories[0], size, last, lastPrice)
+		products, err := repo.GetPaged(categories[0], size, last, lastPrice)
 		if err != nil {
 			t.Fatalf("get paged %v", err)
 		}
-
+		all = append(all, products...)
 		for i, p := range products {
 			if i > 0 {
 				if products[i-1].Price < products[i].Price {
 					t.Fatal("products not sorted")
 				}
 			}
-			visited++
 			if dupes[p.ID] != nil {
 				t.Errorf("duplicate %s", p.ID)
 			}
@@ -117,13 +114,13 @@ func testGetPaged(categories []string, repo ProductRepository, t *testing.T) {
 		lastPrice = products[len(products)-1].Price
 	}
 
-	if visited < total {
-		t.Errorf("did not visit all items expected %d got %d", total, visited)
+	if len(all) == 0 {
+		t.Errorf("did not return products")
 	}
 }
 
 func testGet(categories []string, repo ProductRepository, t *testing.T) {
-	ps, _, err := repo.GetPaged(categories[0], 25, "", float64(0))
+	ps, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
 		t.Fatalf("could not get products %v", err)
 	}
@@ -144,7 +141,7 @@ func testGet(categories []string, repo ProductRepository, t *testing.T) {
 }
 
 func testUpsert(categories []string, repo ProductRepository, t *testing.T) {
-	ps, _, err := repo.GetPaged(categories[0], 25, "", float64(0))
+	ps, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
 		t.Fatalf("getting products %v", err)
 	}
@@ -175,7 +172,7 @@ func testUpsert(categories []string, repo ProductRepository, t *testing.T) {
 }
 
 func testDelete(categories []string, repo ProductRepository, t *testing.T) {
-	ps, _, err := repo.GetPaged(categories[0], 25, "", float64(0))
+	ps, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
 		t.Fatalf("could not get products %v", err)
 	}

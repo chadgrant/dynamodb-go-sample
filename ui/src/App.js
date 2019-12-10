@@ -1,21 +1,18 @@
 import React, { Component } from 'react';
 import './App.css';
-import Categories from './components/categories';
-import Products from './components/products';
+import Categories from './components/Categories';
+import Products from './components/Products';
 
 const API_ENDPOINT = window.API_ENDPOINT ? window.API_ENDPOINT : 'http://localhost:5000';
 const PAGE_SIZE = 25;
 
 export default class App extends Component {
-  constructor(props){
-    super(props);
-    this.state = { categories: [], category : "", products: [], page: 0, pages: [] }
-    this.next = this.next.bind(this);
-    this.prev = this.prev.bind(this);
-    this.add = this.add.bind(this);
-    this.edit = this.edit.bind(this);
-    this.delete = this.delete.bind(this);
-    this.changeCategory = this.changeCategory.bind(this);
+  state = { 
+    categories: [],
+    category : "",
+    products: [],
+    page: 0,
+    pages: []
   }
 
   componentDidMount() {
@@ -32,7 +29,7 @@ export default class App extends Component {
     .catch(console.log)
   }
 
-  changeCategory(category) {
+  changeCategory = (category) => {
     this.setState((prev) => {
       prev.pages = [];
       prev.page = 0;
@@ -41,7 +38,7 @@ export default class App extends Component {
     this.loadPage(category, "","")
   }
 
-  next() {
+  next = () => {
     const {id,price} = this.state.products[this.state.products.length - 1];
     this.setState((prev) => {
       prev.pages[prev.page] = {id,price};
@@ -51,7 +48,7 @@ export default class App extends Component {
     this.loadPage(this.state.category, id, price);
   }
 
-  prev() {
+  prev = () => {
     let id= "", price = "";
     if (this.state.page > 2) {
         const t = this.state.pages[this.state.page-2];
@@ -65,20 +62,21 @@ export default class App extends Component {
     this.loadPage(this.state.category, id, price);
   }
 
-  loadPage(category, id, price) {
+  loadPage = (category, id, price) => {
     fetch(`${API_ENDPOINT}/product/${category.toLowerCase()}?last=${id}&lastprice=${price}`)
     .then(res => res.json())
     .then((data) => {
       this.setState((prev) => {
           prev.category = category;
           prev.products = data.results;
+          prev.total = data.total;
           return prev;
       });
     })
     .catch(console.log)    
   }
 
-  add() {
+  add = () => {
     this.setState((prev) => {
       prev.products.unshift({
         category: prev.category,
@@ -90,7 +88,7 @@ export default class App extends Component {
     });
   }
 
-  delete(id) {
+  delete = (id) => {
     let r = window.confirm("Do you want to delete this item");
     if( r === true) {
       fetch(`${API_ENDPOINT}/product/${id}`,{method: 'DELETE'})
@@ -103,7 +101,7 @@ export default class App extends Component {
     }    
   }
 
-  edit(product, name, price, description) {
+  edit = (product, name, price, description) => {
     product.name = name;
     product.price = Number(price);
     product.description = description;
@@ -151,23 +149,21 @@ export default class App extends Component {
           <div className="col-lg-12">
             <div className="card">
               <div className="card-header">
-                Products : <Categories 
-                categories={this.state.categories} 
-                category={this.state.categories}
-                changeCategory={this.changeCategory} />
+                <Categories 
+                    categories={this.state.categories} 
+                    category={this.state.category}
+                    changeCategory={this.changeCategory} />
                 <button
-                    className="btn btn-dark pull-right btn-next"
+                    className="btn btn-dark float-right btn-next"
                     onClick={this.next}
                     disabled={bnext}>Next</button>
                 <button
-                    className="btn btn-dark pull-right btn-next"
+                    className="btn btn-dark float-right btn-prev"
                     onClick={this.prev}
                     disabled={bprev}>Previous</button>
                 <button
-                  className="btn btn-dark pull-right btn-add"
-                  onClick={this.add}>
-                  Add New
-                </button>                
+                    className="btn btn-primary float-right btn-add"
+                    onClick={this.add}>Add New</button>                
                 </div>
               <div className="card-body">
                 <table className="table table-hover">
