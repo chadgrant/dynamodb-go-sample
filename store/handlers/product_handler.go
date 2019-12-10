@@ -27,13 +27,6 @@ func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
 	return &ProductHandler{repo}
 }
 
-func (h *ProductHandler) Categories(w http.ResponseWriter, r *http.Request) {
-	//faked
-	var categories = []string{"Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory"}
-
-	returnJson(w, r, categories)
-}
-
 func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cat := vars["category"]

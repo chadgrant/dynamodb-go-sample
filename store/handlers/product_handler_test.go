@@ -14,7 +14,8 @@ import (
 )
 
 func TestProductHandler(t *testing.T) {
-	repo := repository.NewMockProductRepository(100)
+	c := repository.NewMockCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
+	repo := repository.NewMockProductRepository(c, 100)
 
 	h := NewProductHandler(repo)
 

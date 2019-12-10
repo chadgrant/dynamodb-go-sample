@@ -29,7 +29,8 @@ func main() {
 	keySecret := *flag.String("keySecret", infra.GetEnvVar("AWS_SECRET_ACCESS_KEY", "secret"), "aws access key secret")
 	sessionToken := *flag.String("sessionToken", infra.GetEnvVar("AWS_SESSION_TOKEN", ""), "aws session token")
 	endpoint := *flag.String("endpoint", infra.GetEnvVar("DYNAMO_ENDPOINT", "http://localhost:8000"), "dynamo endpoint url")
-	table := *flag.String("table", infra.GetEnvVar("DYNAMO_TABLE", "products"), "dynamo table")
+	table := *flag.String("table", infra.GetEnvVar("DYNAMO_TABLE", "products"), "products dynamo table name")
+	ctable := *flag.String("ctable", infra.GetEnvVar("DYNAMO_TABLE", "categories"), "categories dynamo table name")
 	flag.Parse()
 
 	dyn := dynamodb.New(session.Must(session.NewSession()), &aws.Config{
@@ -39,9 +40,12 @@ func main() {
 	})
 
 	var repo repository.ProductRepository
+	var crepo repository.CategoryRepository
 	repo = dynamo.NewProductRepository(table, dyn)
+	crepo = dynamo.NewCategoryRepository(ctable, dyn)
 	if mock {
-		repo = repository.NewMockProductRepository(100)
+		crepo = repository.NewMockCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
+		repo = repository.NewMockProductRepository(crepo, 100)
 	}
 
 	r := mux.NewRouter()
@@ -49,8 +53,9 @@ func main() {
 	r.Use(infra.Recovery)
 
 	ph := handlers.NewProductHandler(repo)
+	ch := handlers.NewCategoryHandler(crepo)
 
-	r.HandleFunc("/category", ph.Categories).Methods(http.MethodGet)
+	r.HandleFunc("/category", ch.GetAll).Methods(http.MethodGet)
 
 	r.HandleFunc("/product/{category:[A-Za-z]+}", ph.GetPaged).Methods(http.MethodGet)
 	r.HandleFunc("/product/", ph.Add).Methods(http.MethodPost)

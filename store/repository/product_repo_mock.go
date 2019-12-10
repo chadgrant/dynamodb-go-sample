@@ -11,18 +11,17 @@ import (
 	"github.com/google/uuid"
 )
 
-//mocked/faked
-var categories = []string{"Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory"}
-
 type MockRepository struct {
-	products []*store.Product
-	lookup   map[string]string
+	products   []*store.Product
+	lookup     map[string]string
+	categories CategoryRepository
 }
 
-func NewMockProductRepository(max int) *MockRepository {
+func NewMockProductRepository(repo CategoryRepository, max int) *MockRepository {
 	m := &MockRepository{
-		products: make([]*store.Product, 0),
-		lookup:   make(map[string]string),
+		products:   make([]*store.Product, 0),
+		lookup:     make(map[string]string),
+		categories: repo,
 	}
 	m.create(max)
 	return m
@@ -80,7 +79,11 @@ func (r *MockRepository) Delete(productID string) error {
 }
 
 func (r *MockRepository) create(max int) error {
-	for _, c := range categories {
+	cats, err := r.categories.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, c := range cats {
 		for i := 0; i < max; i++ {
 			id, _ := uuid.NewRandom()
 			p := &store.Product{
@@ -113,6 +116,7 @@ func find(prds []*store.Product, id string) (int, *store.Product) {
 	}
 	return -1, nil
 }
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
