@@ -59,13 +59,12 @@ docker-infra-api:
 docker-run:
 	docker-compose up --no-start
 	docker-compose start data
-	#sleep 3 #wait for infra to come up
 	docker-compose up -d
 
 docker-test:
 	docker-compose up --no-start
 	docker-compose start data
-	sleep 3 #wait for infra to come up
+	sleep 5 #wait for infra to come up
 	docker-compose run tests
 
 docker-stop:
