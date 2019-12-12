@@ -39,7 +39,7 @@ services:
 
    ui:
       build:
-        context: ./ui
+        context: ./ui/typescript-react
       image: chadgrant/sample_api_ui:${BUILD_NUMBER:-1.0.0}
       container_name: sample_api_ui
       restart: unless-stopped

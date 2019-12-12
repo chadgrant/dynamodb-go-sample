@@ -1,0 +1,13 @@
+.btn-add, .btn-next, .btn-prev {
+  margin-left: 10px;
+  width: 8em;
+}
+
+.sel-cat {
+  width: 8em;
+}
+
+.card-header{
+  font-weight: bold;
+  font-size: 1.5em;
+}
