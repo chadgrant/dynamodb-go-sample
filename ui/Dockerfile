@@ -1,15 +1,17 @@
 FROM node:12.13.1-alpine as builder
+ARG ui
 
 WORKDIR /app
 
 ENV PATH /app/node_modules/.bin:$PATH
 
-COPY package.json .
-RUN npm install
-RUN npm install react-scripts@3.3.0 -g
+COPY ${ui}/*.json /app/
+RUN rm *-lock.json \
+    && npm install \
+    && npm install react-scripts@3.3.0 -g
 
-COPY public public
-COPY src src
+COPY ${ui}/public public
+COPY ${ui}/src src
 RUN npm run build
 
 FROM nginx:1.16.0-alpine

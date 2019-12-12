@@ -1,7 +1,0 @@
-node_modules
-*.log*
-build/
-coverage/
-.vscode
-.DS_STORE
-.grunt
