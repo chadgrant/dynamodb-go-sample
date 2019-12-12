@@ -8,6 +8,10 @@ import RESTProductRepository from './repositories/rest/ProductRepository';
 import MockCategoryRepository from './repositories/mock/CategoryRepository';
 import MockProductRepository from './repositories/mock/ProductRepository';
 
+export interface CustomWindow extends Window { API_ENDPOINT: string;  }
+declare let window: CustomWindow;
+const API_ENDPOINT = window.API_ENDPOINT ? window.API_ENDPOINT : 'http://localhost:5000';
+
 const defaultState = {
     categories: new Array<string>(),
     category: "Hats",
@@ -19,7 +23,6 @@ const defaultState = {
 //const categoryRepo = new MockCategoryRepository();
 //const productRepo = new MockProductRepository(CAT_REPO,100);
 
-const API_ENDPOINT = 'http://localhost:5000';
 const categoryRepo = new RESTCategoryRepository(API_ENDPOINT);
 const productRepo = new RESTProductRepository(API_ENDPOINT);
   
