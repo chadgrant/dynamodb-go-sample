@@ -4,6 +4,7 @@ import Product from '../../models/Product';
 
 export default class MockProductRepository implements ProductRepository {
     products: Map<string,Map<string,Product>>;
+
     constructor(catRepo:CategoryRepository, max:number) {
         this.products = new Map<string,Map<string,Product>>();
         catRepo.getAll().then(cats => {
@@ -19,25 +20,61 @@ export default class MockProductRepository implements ProductRepository {
     }
 
     getPaged(category: string, last?: string, lastPrice?: number, size:number = 25): Promise<Product[]> {
-        const arr:Product[] = new Array(size);
+        const arr:Product[] = new Array<Product>();
         const prods = this.products.get(category)
         if (prods) {
-            let counter = 0;
+            let consuming = (last === undefined || last === "" || last === null);
             prods.forEach((v,_) => {
-                if (counter >= arr.length) { return false }
-                arr[counter++] = v;
+                if (arr.length < size) {
+                    if (!consuming) {
+                        if(v.id === last) {
+                            consuming = true;
+                        }
+                    } else {                
+                        arr.push(v);  
+                    }
+                }
             });
         }
         return Promise.resolve(arr);
     }
+
+    get(id: string): Promise<Product | null> {
+        this.products.forEach((_,k)=>{
+            const map = this.products.get(k);
+            const p = map!.get(id);
+            if (p != undefined){
+                return Promise.resolve(p);
+            }
+        });
+        return Promise.resolve(null);
+    }
     
     add(product: Product): Promise<Product> {
-        throw new Error("Method not implemented.");
+        const i = Date.now();
+        const p = new Product(`${product.category.toLowerCase()}-${i}`,product.category,`${product.category} Product ${i}`,1,`Description of cool ${product.category} Product ${i}`)
+        const map = this.products.get(p.category)
+        map!.set(p.id,p);
+        return Promise.resolve(p);
     }
+
     edit(product: Product): Promise<any> {
-        throw new Error("Method not implemented.");
+        const map = this.products.get(product.category);
+        const p = map!.get(product.id);
+        if (p) {
+            p.name = product.name;
+            p.price = product.price;
+            p.description = product.description;
+            map!.set(p.id,p);
+        }
+        return Promise.resolve();
     }
+
     delete(id: string): Promise<any> {
-        throw new Error("Method not implemented.");
+        this.products.forEach((_,k)=>{
+            const map = this.products.get(k);
+            map!.delete(id);
+        });
+        return Promise.resolve();
     }
 }

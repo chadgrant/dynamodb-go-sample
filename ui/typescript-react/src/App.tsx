@@ -13,7 +13,8 @@ interface AppState {
   category : string
   products: Product[]
   page: number
-  pages: ProductInfo[]
+  pages: ProductInfo[],
+  eof: boolean
 }
 
 const App:FC<{state:AppState, categoryRepo:CategoryRepository, productRepo:ProductRepository}> = (props) => {
@@ -23,27 +24,25 @@ const App:FC<{state:AppState, categoryRepo:CategoryRepository, productRepo:Produ
     props.categoryRepo.getAll().then(cats=>{
       props.productRepo.getPaged(props.state.category, undefined, undefined, PAGE_SIZE).then(products=>{
         setAppState((p:AppState) => {
-          return {
-            categories: cats, 
-            category: p.category, 
-            products: products, 
-            page: p.page, 
-            pages: p.pages};
+          return mutate(p, n=>{
+            n.categories = cats;
+            n.products = products;
+            return n;
           });
+        });
       });
     });
-  },[])
+  },[props.state.category, props.categoryRepo, props.productRepo])
 
   const changeCategory = async (category:string) => {
     const products = await props.productRepo.getPaged(category, undefined, undefined, PAGE_SIZE);
     setAppState((p:AppState) => {
-      return {
-        categories: p.categories, 
-        category: category, 
-        products: products, 
-        page: p.page, 
-        pages: p.pages};
+      return mutate(p, n=>{
+        n.category = category;
+        n.products = products;
+        return n;
       });
+    });
   } 
 
   const next = async () => {
@@ -51,18 +50,18 @@ const App:FC<{state:AppState, categoryRepo:CategoryRepository, productRepo:Produ
     const products = await props.productRepo.getPaged(appState.category, id, price, PAGE_SIZE);
     setAppState((p:AppState) => {
       const pages = [...p.pages,{id,price}];
-      return {
-        categories: p.categories, 
-        category: p.category, 
-        products: products,
-        page: p.page+1, 
-        pages: pages
-      }
+      return mutate(p, n=>{
+        n.page++;
+        n.products = (products.length === 0) ? p.products : products;
+        n.eof = products.length === 0;
+        n.pages = pages;
+        return n;
+      });
     });
   }
 
   const prev = async () => {
-    let id= "", price = 0;
+    let id="", price=0;
     if (appState.page > 2) {
         const t = appState.pages[appState.page-2];
         id = t.id;
@@ -70,43 +69,32 @@ const App:FC<{state:AppState, categoryRepo:CategoryRepository, productRepo:Produ
     }
     const products = await props.productRepo.getPaged(appState.category, id, price, PAGE_SIZE);
     setAppState((p:AppState) => {
-      return {
-        categories: p.categories, 
-        category: p.category, 
-        products: products,
-        page: p.page-1, 
-        pages: p.pages
-      }
+      return mutate(p, n=>{
+        n.page--;
+        n.products = products;
+        return n;
+      });
     });
   }
 
   const add = () => {
     setAppState((p:AppState) => {
-      var newp = {
-        categories: p.categories, 
-        category: p.category, 
-        products: p.products,
-        page: p.page, 
-        pages: p.pages
-      };
-      newp.products.unshift({id : "", category: p.category, name: "", price: 1, description: "" })
-      return newp;
+      return mutate(p, n=>{
+        n.products.unshift({id : "", category: p.category, name: "", price: 1, description: "" })
+        return n;
+      });
     });
   }
 
   const remove = async (id:string) => {
-    let r = window.confirm("Do you want to delete this item");
-    if( r === true) {
+    if(window.confirm("Do you want to delete this item") === true) {
       await props.productRepo.delete(id);
 
       setAppState((p:AppState) => {
-        return {
-          categories: p.categories, 
-          category: p.category, 
-          products: p.products.filter(p => p.id !== id),
-          page: p.page-1, 
-          pages: p.pages
-        }
+        return mutate(p, n=>{
+          n.products = p.products.filter(p => p.id !== id);
+          return n;
+        });        
      });
     }   
   }
@@ -117,6 +105,17 @@ const App:FC<{state:AppState, categoryRepo:CategoryRepository, productRepo:Produ
     product.description = description;
 
     await props.productRepo.edit(product);
+  }
+
+  const mutate = (prev:AppState, callback:(x:AppState) => AppState) => {
+    return callback({
+      categories: prev.categories, 
+      category: prev.category, 
+      products: prev.products,
+      page: prev.page, 
+      pages: prev.pages,
+      eof: false
+    });
   }
 
   return (
@@ -132,7 +131,7 @@ const App:FC<{state:AppState, categoryRepo:CategoryRepository, productRepo:Produ
               <button
                   className="btn btn-dark float-right btn-next"
                   onClick={next}
-                  disabled={(appState.products.length < PAGE_SIZE)}>Next</button>
+                  disabled={(appState.products.length < PAGE_SIZE || appState.eof)}>Next</button>
               <button
                   className="btn btn-dark float-right btn-prev"
                   onClick={prev}

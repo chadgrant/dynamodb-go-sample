@@ -4,26 +4,25 @@ import App from './App';
 import Product, { ProductInfo } from './models/Product';
 import RESTCategoryRepository from './repositories/rest/CategoryRepository';
 import RESTProductRepository from './repositories/rest/ProductRepository';
+//import MockCategoryRepository from './repositories/mock/CategoryRepository';
+//import MockProductRepository from './repositories/mock/ProductRepository';
+//const categoryRepo = new MockCategoryRepository();
+//const productRepo = new MockProductRepository(categoryRepo,100);
 
-import MockCategoryRepository from './repositories/mock/CategoryRepository';
-import MockProductRepository from './repositories/mock/ProductRepository';
+const API_ENDPOINT = window.API_ENDPOINT ? window.API_ENDPOINT : 'http://localhost:5000';
+const categoryRepo = new RESTCategoryRepository(API_ENDPOINT);
+const productRepo = new RESTProductRepository(API_ENDPOINT);
 
 export interface CustomWindow extends Window { API_ENDPOINT: string;  }
 declare let window: CustomWindow;
-const API_ENDPOINT = window.API_ENDPOINT ? window.API_ENDPOINT : 'http://localhost:5000';
 
 const defaultState = {
     categories: new Array<string>(),
     category: "Hats",
     products: new Array<Product>(),
     page: 0,
-    pages : new Array<ProductInfo>()
+    pages : new Array<ProductInfo>(),
+    eof: false
 };
-
-//const categoryRepo = new MockCategoryRepository();
-//const productRepo = new MockProductRepository(CAT_REPO,100);
-
-const categoryRepo = new RESTCategoryRepository(API_ENDPOINT);
-const productRepo = new RESTProductRepository(API_ENDPOINT);
-  
+ 
 ReactDOM.render(<App state={defaultState} categoryRepo={categoryRepo} productRepo={productRepo}/>, document.getElementById('root'));
