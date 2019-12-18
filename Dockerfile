@@ -1,4 +1,7 @@
-FROM golang:1.13 AS builder
+ARG builder_img="golang:1.13"
+ARG runtime_img="alpine:3.10.3"
+
+FROM $builder_img AS builder
 
 ARG application
 ARG friendly
@@ -18,7 +21,7 @@ COPY store ./store/
 RUN go get ./... && \
     BUILDOUT=/go/bin/goapp make build
 
-FROM alpine:3.10.3
+FROM $runtime_img
 RUN apk add --no-cache ca-certificates libc6-compat 
 WORKDIR /app
 COPY docs /app/docs/

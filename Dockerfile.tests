@@ -1,4 +1,6 @@
-FROM golang:1.13
+ARG runtime_img="golang:1.13"
+
+FROM $runtime_img
 
 WORKDIR /go/src/github.com/chadgrant/dynamodb-go-sample
 

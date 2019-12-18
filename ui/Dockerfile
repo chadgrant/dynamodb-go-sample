@@ -1,5 +1,8 @@
-FROM node:12.13.1-alpine as builder
-ARG ui
+ARG builder_img="node:12.13.1-alpine"
+ARG runtime_img="nginx:1.16.0-alpine"
+
+FROM $builder_img as builder
+ARG ui="typescript-react"
 
 WORKDIR /app
 
@@ -14,7 +17,7 @@ COPY ${ui}/public public
 COPY ${ui}/src src
 RUN npm run build
 
-FROM nginx:1.16.0-alpine
+FROM $runtime_img
 COPY --from=builder /app/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d
 COPY entrypoint.sh /entrypoint.sh
