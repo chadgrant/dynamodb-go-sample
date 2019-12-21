@@ -14,12 +14,13 @@ ENV APPLICATION=$application FRIENDLY=$friendly BUILD_HASH=$build_hash BUILD_BRA
 
 WORKDIR /go/src/github.com/chadgrant/$application/
 
-COPY Makefile .
-COPY main.go . 
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY Makefile main.go ./
 COPY store ./store/
 
-RUN go get ./... && \
-    BUILDOUT=/go/bin/goapp make build
+RUN BUILDOUT=/go/bin/goapp make build
 
 FROM $runtime_img
 RUN apk add --no-cache ca-certificates libc6-compat 

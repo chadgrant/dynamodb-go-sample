@@ -4,9 +4,10 @@ FROM $runtime_img
 
 WORKDIR /go/src/github.com/chadgrant/dynamodb-go-sample
 
-COPY main.go . 
-COPY store ./store/
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN go get ./...
+COPY Makefile main.go ./ 
+COPY store ./store/
 
 CMD ["go","test","-v","./..."]
