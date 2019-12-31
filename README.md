@@ -16,7 +16,7 @@ curl http://localhost:5000/product/hats
 
 ## UI
 
-The ui is available at http://localhost:4000
+UI is available at http://localhost:4000
 
 ## Running infrastructure locally to work/test against
 ```bash
