@@ -18,7 +18,6 @@ curl http://localhost:5000/product/hats
 
 The ui is available at http://localhost:4000
 
-
 ## Running infrastructure locally to work/test against
 ```bash
 make docker-infra
