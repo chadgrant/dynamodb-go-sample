@@ -8,7 +8,7 @@ import (
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
-	"github.com/chadgrant/go/http/infra"
+	"github.com/chadgrant/go-http-infra/infra"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )

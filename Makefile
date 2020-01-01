@@ -14,7 +14,7 @@ ifdef BUILDOUT
 	OUTPUT=-o ${BUILDOUT}
 endif
 
-PKG=github.com/chadgrant/go/http/infra
+PKG=github.com/chadgrant/go-http-infra
 LDFLAGS += -X '${PKG}.Application=${APPLICATION}'
 LDFLAGS += -X '${PKG}.Friendly=${FRIENDLY}'
 LDFLAGS += -X '${PKG}.BuildNumber=${BUILD_NUMBER}'

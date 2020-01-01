@@ -1,4 +1,4 @@
-ARG runtime_img="golang:1.13"
+ARG runtime_img="golang:1.13.5"
 
 FROM $runtime_img
 

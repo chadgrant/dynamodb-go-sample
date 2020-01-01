@@ -1,4 +1,4 @@
-ARG builder_img="golang:1.13"
+ARG builder_img="golang:1.13.5"
 ARG runtime_img="alpine:3.10.3"
 
 FROM $builder_img AS builder

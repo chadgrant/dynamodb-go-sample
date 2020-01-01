@@ -1,7 +1,8 @@
 github.com/aws/aws-sdk-go v1.26.7 h1:ObjEnmzvSdYy8KVd3me7v/UMyCn81inLy2SyoIPoBkg=
 github.com/aws/aws-sdk-go v1.26.7/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
-github.com/chadgrant/go v0.0.0-20191201221653-2bc6db865169 h1:G4QdTuPOtx0e1tsTQG/it9ncrwUt031jSBqyiFVF0Nw=
-github.com/chadgrant/go v0.0.0-20191201221653-2bc6db865169/go.mod h1:JSfqnN7MkRDF0eDZuWl6642Nyx5Ld1Uzn8dPgPXYPZM=
+github.com/chadgrant/go-http-infra v1.0.0 h1:bIYAS3aCltAAM8Z9uvV/Ql5fqyxp4QoFtaoRfZgEj98=
+github.com/chadgrant/go-http-infra v1.0.2 h1:PBNBL/xe+wBNLInadi5SYEldYYVLwR50s+cj+2e+X5Q=
+github.com/chadgrant/go-http-infra v1.0.2/go.mod h1:ipyOgYk0KV1njxptASKN2w6sxWy4NzMd/43prwVh5yg=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gorilla/mux v1.7.3 h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=
