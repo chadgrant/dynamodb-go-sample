@@ -2,6 +2,7 @@ ARG builder_img="golang:1.13.5-alpine"
 ARG runtime_img="alpine:3.11.2"
 
 FROM $builder_img AS builder
+ENV CGO_ENABLED=0
 RUN apk add --update --no-cache make
 
 ARG application
