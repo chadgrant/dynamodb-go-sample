@@ -1,7 +1,8 @@
-ARG builder_img="golang:1.13.5"
-ARG runtime_img="alpine:3.10.3"
+ARG builder_img="golang:1.13.5-alpine"
+ARG runtime_img="alpine:3.11.2"
 
 FROM $builder_img AS builder
+RUN apk add --update --no-cache make
 
 ARG application
 ARG friendly
