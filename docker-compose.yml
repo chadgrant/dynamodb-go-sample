@@ -8,12 +8,18 @@ services:
        args:
          - application=dynamodb-go-sample
          - friendly=Sample API
+         - description=Sample API using dynamodb as a backing store
          - build_hash=${BUILD_HASH:-localbuild_hashmissing}
          - build_user=${BUILD_USER:-unknown}
          - build_branch=${BUILD_BRANCH:-nobranch}
          - build_number=${BUILD_NUMBER:-1.0.0}
          - build_group=${BUILD_GROUP:-nogroupspecified}
-     image: chadgrant/sample_api:${BUILD_NUMBER:-1.0.0}
+         - build_date=${BUILD_DATE}
+         - repo_url=${REPO_URL}
+         - vendor=${VENDOR:-Chad Grant}
+         - builder_img=chadgrant/base:golang-1.13.5-alpine
+         - runtime_img=chadgrant/base:alpine-3.11.2
+     image: chadgrant/dynamodb-go-sample:${BUILD_NUMBER:-1.0.0}
      container_name: sample_api
      restart: unless-stopped
      ports:
@@ -28,7 +34,7 @@ services:
       build:
        context: ./
        dockerfile: Dockerfile.tests
-      image: chadgrant/sample_api_test:${BUILD_NUMBER:-1.0.0}
+      image: chadgrant/dynamodb-go-sample-test:${BUILD_NUMBER:-1.0.0}
       container_name: sample_api_test
       depends_on:
         - data
@@ -42,7 +48,7 @@ services:
         args:
           - ui=typescript-react
         context: ./ui
-      image: chadgrant/sample_api_ui:${BUILD_NUMBER:-1.0.0}
+      image: chadgrant/dynamodb-go-sample-ui:${BUILD_NUMBER:-1.0.0}
       container_name: sample_api_ui
       restart: unless-stopped
       ports:
@@ -53,7 +59,7 @@ services:
    data:
       build:
        context: ./db
-      image: chadgrant/sample_api_data:${BUILD_NUMBER:-1.0.0}
+      image: chadgrant/dynamodb-go-sample-data:${BUILD_NUMBER:-1.0.0}
       container_name: sample_api_data
       restart: unless-stopped
       ports:

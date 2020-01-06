@@ -1,14 +1,20 @@
-APPLICATION?=application_name
-FRIENDLY?=Friendly Name
+APPLICATION?=golang_testing
+FRIENDLY?=Tools for testing, linting and benchmarking golang
+DESCRIPTION?=Tools for testing, linting and benchmarking golang
+VENDOR?=Chad Grant
 BUILD_NUMBER?=1.0.0
 BUILD_GROUP?=sample-group
 BUILD_BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 BUILD_HASH?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +%s)
-
+REPO_URL?=https://github.com/chadgrant/docker-tools/dynamodb-go-sample
+REGISTRY?=docker.io
+BUILD_USER?=$(USER)
 ifdef BUILD_HASH
 	BUILD_USER?=$(shell git --no-pager show -s --format='%ae' $(BUILD_HASH))
 endif
+
+TAG?=chadgrant/dynamodb-go-sample
 
 ifdef BUILDOUT
 	OUTPUT=-o ${BUILDOUT}
@@ -74,6 +80,5 @@ docker-rm: docker-stop
 	-docker container rm `docker container ls -aq --filter name=sample_api*`
 
 docker-clean: docker-rm
-	-docker rmi `docker images --format '{{.Repository}}:{{.Tag}}' | grep "chadgrant/sample"` -f
-	-docker rmi `docker images -qf dangling=true`
-	#-docker volume rm `docker volume ls -qf dangling=true`
+	-docker rmi `docker images --format '{{.Repository}}:{{.Tag}}' | grep "${TAG}"` -f
+	-docker system prune -f --volumes
