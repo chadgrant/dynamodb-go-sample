@@ -10,11 +10,11 @@ BUILD_DATE?=$(shell date -u +%s)
 REPO_URL?=https://github.com/chadgrant/docker-tools/dynamodb-go-sample
 REGISTRY?=docker.io
 BUILD_USER?=$(USER)
+TAG?=chadgrant/dynamodb-go-sample
+
 ifdef BUILD_HASH
 	BUILD_USER?=$(shell git --no-pager show -s --format='%ae' $(BUILD_HASH))
 endif
-
-TAG?=chadgrant/dynamodb-go-sample
 
 ifdef BUILDOUT
 	OUTPUT=-o ${BUILDOUT}
@@ -35,20 +35,17 @@ LDFLAGS += -X '${PKG}.CompilerVersion=$(shell go version)'
 .DEFAULT_GOAL := help
 .EXPORT_ALL_VARIABLES:
 
-clean:
-	-rm dynamodb-go-sample
-
-get:
-	go get -u ./...
-
 build:
 	go build ${OUTPUT} -ldflags "-s ${LDFLAGS}"
 
-test: get
+test:
 	go test ./... -v
 
 docker-build:
 	docker-compose build
+
+docker-build-api:
+	docker-compose build api
 
 docker-push: docker-build
 	docker-compose push api

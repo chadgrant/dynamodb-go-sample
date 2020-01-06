@@ -17,13 +17,19 @@ services:
          - build_date=${BUILD_DATE}
          - repo_url=${REPO_URL}
          - vendor=${VENDOR:-Chad Grant}
-         - builder_img=chadgrant/base:golang-1.13.5-alpine
-         - runtime_img=chadgrant/base:alpine-3.11.2
-     image: chadgrant/dynamodb-go-sample:${BUILD_NUMBER:-1.0.0}
+         - builder_img=${REGISTRY}/chadgrant/base:golang-1.13.5-alpine
+         - runtime_img=${REGISTRY}/chadgrant/base:alpine-3.11.2
+     image: ${REGISTRY}/chadgrant/dynamodb-go-sample:${BUILD_NUMBER:-1.0.0}
      container_name: sample_api
      restart: unless-stopped
      ports:
        - 5000:8080
+     healthcheck:
+        test: "curl -f http://localhost:8080/health/liveness || exit 1"
+        interval: 30s
+        timeout: 2s
+        retries: 3
+        start_period: 5s
      environment:
         DYNAMO_ENDPOINT: "http://data:8000"       
         AWS_REGION: "us-east-1"
@@ -34,7 +40,9 @@ services:
       build:
        context: ./
        dockerfile: Dockerfile.tests
-      image: chadgrant/dynamodb-go-sample-test:${BUILD_NUMBER:-1.0.0}
+       args:
+        - runtime_img=${REGISTRY}/chadgrant/golang-testing:1.13.5-alpine
+      image: ${REGISTRY}/chadgrant/dynamodb-go-sample-test:${BUILD_NUMBER:-1.0.0}
       container_name: sample_api_test
       depends_on:
         - data
@@ -48,7 +56,7 @@ services:
         args:
           - ui=typescript-react
         context: ./ui
-      image: chadgrant/dynamodb-go-sample-ui:${BUILD_NUMBER:-1.0.0}
+      image: ${REGISTRY}/chadgrant/dynamodb-go-sample-ui:${BUILD_NUMBER:-1.0.0}
       container_name: sample_api_ui
       restart: unless-stopped
       ports:
@@ -59,7 +67,7 @@ services:
    data:
       build:
        context: ./db
-      image: chadgrant/dynamodb-go-sample-data:${BUILD_NUMBER:-1.0.0}
+      image: ${REGISTRY}/chadgrant/dynamodb-go-sample-data:${BUILD_NUMBER:-1.0.0}
       container_name: sample_api_data
       restart: unless-stopped
       ports:

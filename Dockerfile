@@ -40,12 +40,19 @@ ARG build_group
 ARG repo_url
 ARG vendor
 ARG build_date
+ARG svc_port=8080
+ENV SVC_PORT=$svc_port
+
+EXPOSE ${svc_port}
 
 RUN install-deps ca-certificates libc6-compat 
+RUN addgroup -S app && \
+    adduser -S app -G app
+USER app
 WORKDIR /app
 COPY docs /app/docs/
 COPY --from=builder /go/bin/goapp /app/
-ENTRYPOINT ./goapp
+CMD ["/app/goapp"]
 
 ## http://label-schema.org/rc1/
 LABEL org.label-schema.schema-version="1.0" \
