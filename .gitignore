@@ -17,3 +17,4 @@
 .vscode
 dynamodb-go-sample
 vendor/*
+!vendor/.keep
