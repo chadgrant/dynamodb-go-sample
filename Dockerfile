@@ -20,6 +20,7 @@ RUN install-deps make
 
 WORKDIR /go/src/github.com/chadgrant/$application/
 
+COPY vendor ./vendor/ 
 COPY go.mod go.sum ./
 RUN go mod download
 
@@ -40,10 +41,6 @@ ARG build_group
 ARG repo_url
 ARG vendor
 ARG build_date
-ARG svc_port=8080
-ENV SVC_PORT=$svc_port
-
-EXPOSE ${svc_port}
 
 RUN install-deps ca-certificates libc6-compat 
 RUN addgroup -S app && \

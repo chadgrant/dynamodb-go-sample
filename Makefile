@@ -2,15 +2,17 @@ APPLICATION?=golang_testing
 FRIENDLY?=Tools for testing, linting and benchmarking golang
 DESCRIPTION?=Tools for testing, linting and benchmarking golang
 VENDOR?=Chad Grant
+
+REPO_URL?=https://github.com/chadgrant/docker-tools/dynamodb-go-sample
+DOCKER_REGISTRY?=docker.io
+DOCKER_TAG?=chadgrant/dynamodb-go-sample
+
 BUILD_NUMBER?=1.0.0
 BUILD_GROUP?=sample-group
 BUILD_BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 BUILD_HASH?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +%s)
-REPO_URL?=https://github.com/chadgrant/docker-tools/dynamodb-go-sample
-REGISTRY?=docker.io
 BUILD_USER?=$(USER)
-TAG?=chadgrant/dynamodb-go-sample
 
 ifdef BUILD_HASH
 	BUILD_USER?=$(shell git --no-pager show -s --format='%ae' $(BUILD_HASH))
@@ -35,11 +37,17 @@ LDFLAGS += -X '${PKG}.CompilerVersion=$(shell go version)'
 .DEFAULT_GOAL := help
 .EXPORT_ALL_VARIABLES:
 
+clean: 
+	go clean
+	
 build:
 	go build ${OUTPUT} -ldflags "-s ${LDFLAGS}"
 
 test:
-	go test ./... -v
+	go test -v ./...
+
+test-integration:
+	TEST_INTEGRATION=1 && go test -v ./...
 
 docker-build:
 	docker-compose build
@@ -77,5 +85,5 @@ docker-rm: docker-stop
 	-docker container rm `docker container ls -aq --filter name=sample_api*`
 
 docker-clean: docker-rm
-	-docker rmi `docker images --format '{{.Repository}}:{{.Tag}}' | grep "${TAG}"` -f
+	-docker rmi `docker images --format '{{.Repository}}:{{.Tag}}' | grep "${DOCKER_TAG}"` -f
 	-docker system prune -f --volumes

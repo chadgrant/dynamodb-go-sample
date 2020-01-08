@@ -16,3 +16,4 @@
 
 .vscode
 dynamodb-go-sample
+vendor/*
