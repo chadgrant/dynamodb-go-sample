@@ -6,16 +6,16 @@ services:
      build:
        context: ./
        args:
-         - application=dynamodb-go-sample
-         - friendly=Sample API
-         - description=Sample API using dynamodb as a backing store
+         - application=${APPLICATION:-dynamodb-go-sample}
+         - friendly=${FRIENDLY:-Sample API}
+         - description=${DESCRIPTION:-Sample API using dynamodb as a backing store}
          - build_hash=${BUILD_HASH:-localbuild_hashmissing}
          - build_user=${BUILD_USER:-unknown}
          - build_branch=${BUILD_BRANCH:-nobranch}
          - build_number=${BUILD_NUMBER:-1.0.0}
          - build_group=${BUILD_GROUP:-nogroupspecified}
          - build_date=${BUILD_DATE}
-         - repo_url=${REPO_URL}
+         - build_repo=${BUILD_REPO}
          - vendor=${VENDOR:-Chad Grant}
          - builder_img=${DOCKER_REGISTRY}/chadgrant/base:golang-1.13.5-alpine
          - runtime_img=${DOCKER_REGISTRY}/chadgrant/base:alpine-3.11.2

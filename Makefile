@@ -4,19 +4,22 @@ DESCRIPTION?=Sample service using Go and DynamoDB
 VENDOR?=Chad Grant
 BINARY_NAME?=$(shell basename $(PWD))
 
-REPO_URL?=https://github.com/chadgrant/docker-tools/dynamodb-go-sample
 DOCKER_REGISTRY?=docker.io
 DOCKER_TAG?=chadgrant/dynamodb-go-sample
 
-BUILD_NUMBER?=1.0.0
+BUILD_REPO?=https://github.com/chadgrant/docker-tools/dynamodb-go-sample
 BUILD_GROUP?=sample-group
+BUILD_NUMBER?=$(shell git describe --tags --dirty --match=v* 2> /dev/null || echo v1.0.0)
 BUILD_BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 BUILD_HASH?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +%s)
-BUILD_USER?=$(USER)
 
 ifdef BUILD_HASH
-	BUILD_USER?=$(shell git --no-pager show -s --format='%ae' $(BUILD_HASH))
+ ifndef BUILD_USER
+	BUILD_USER?=$(shell git --no-pager show -s --format='%ae' $(BUILD_HASH) 2> /dev/null || echo $(USER))
+ endif
+else
+ BUILD_USER?=$(USER)
 endif
 
 PKG=github.com/chadgrant/go-http-infra/infra
@@ -34,6 +37,22 @@ LDFLAGS="-w -s \
 .PHONY: build
 .DEFAULT_GOAL := help
 .EXPORT_ALL_VARIABLES:
+
+build-vars:
+	@echo "APPLICATION=$(APPLICATION)"
+	@echo "FRIENDLY=$(FRIENDLY)"
+	@echo "DESCRIPTION=$(DESCRIPTION)"
+	@echo "VENDOR=$(VENDOR)"
+	@echo "BINARY_NAME=$(BINARY_NAME)"
+	@echo "DOCKER_REGISTRY=$(DOCKER_REGISTRY)"
+	@echo "DOCKER_TAG=$(DOCKER_TAG)"
+	@echo "BUILD_USER=$(BUILD_USER)"
+	@echo "BUILD_REPO=$(BUILD_REPO)"	
+	@echo "BUILD_NUMBER=$(BUILD_NUMBER)"
+	@echo "BUILD_GROUP=$(BUILD_GROUP)"
+	@echo "BUILD_BRANCH=$(BUILD_BRANCH)"
+	@echo "BUILD_HASH=$(BUILD_HASH)"
+	@echo "BUILD_DATE?=$(BUILD_DATE)"
 
 clean:
 	go clean -i
@@ -61,6 +80,18 @@ ifeq (,$(shell type golangci-lint 2>/dev/null))
 		| sh -s -- -b $(shell go env GOPATH)/bin v1.22.2
 endif
 	golangci-lint run --timeout=300s --skip-dirs-use-default --exclude="should have comment or be unexported"  ./...
+
+reportcard:
+ifeq (,$(shell type gometalinter 2>/dev/null))
+	## has not transitioned to golangci-lint yet
+	cd $(GOPATH); curl -L https://git.io/vp6lP | sh
+endif
+ifeq (,$(shell type goreportcard-cli 2>/dev/null))
+	go get github.com/gojp/goreportcard/cmd/goreportcard-cli
+endif
+	goreportcard-cli
+
+coverage:
 
 docker-build:
 	docker-compose build

@@ -11,10 +11,10 @@ ARG build_branch
 ARG build_user
 ARG build_number
 ARG build_group
-ARG repo_url
+ARG build_repo
 ARG vendor
 ARG build_date
-ENV CGO_ENABLED=0 APPLICATION=$application FRIENDLY=$friendly DESCRIPTION="${description}" BUILD_HASH=$build_hash BUILD_BRANCH=$build_branch BUILD_USER=$build_user BUILD_NUMER=$build_number BUILD_GROUP=$build_group REPO_URL=$repo_url
+ENV CGO_ENABLED=0 APPLICATION=$application FRIENDLY=$friendly DESCRIPTION="${description}" BUILD_HASH=$build_hash BUILD_BRANCH=$build_branch BUILD_USER=$build_user BUILD_NUMER=$build_number BUILD_GROUP=$build_group BUILD_REPO=$build_repo
 
 RUN install-deps make
 
@@ -38,7 +38,7 @@ ARG build_branch
 ARG build_user
 ARG build_number
 ARG build_group
-ARG repo_url
+ARG build_repo
 ARG vendor
 ARG build_date
 
@@ -62,6 +62,6 @@ LABEL org.label-schema.schema-version="1.0" \
     org.label-schema.build-date="${build_date}" \
     org.label-schema.vcs-branch="${build_branch}" \
     org.label-schema.vcs-ref="${build_hash}" \
-    org.label-schema.vcs-url="${repo_url}" \
-    org.label-schema.url="${repo_url}" \
+    org.label-schema.vcs-url="${build_repo}" \
+    org.label-schema.url="${build_repo}" \
     org.label-schema.vendor="${vendor}"
