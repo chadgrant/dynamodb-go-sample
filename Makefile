@@ -1,7 +1,8 @@
-APPLICATION?=golang_testing
-FRIENDLY?=Tools for testing, linting and benchmarking golang
-DESCRIPTION?=Tools for testing, linting and benchmarking golang
+APPLICATION?=dynamodb-go-sample
+FRIENDLY?=DynamoDB and Go Service
+DESCRIPTION?=Sample service using Go and DynamoDB
 VENDOR?=Chad Grant
+BINARY_NAME?=$(shell basename $(PWD))
 
 REPO_URL?=https://github.com/chadgrant/docker-tools/dynamodb-go-sample
 DOCKER_REGISTRY?=docker.io
@@ -18,36 +19,48 @@ ifdef BUILD_HASH
 	BUILD_USER?=$(shell git --no-pager show -s --format='%ae' $(BUILD_HASH))
 endif
 
-ifdef BUILDOUT
-	OUTPUT=-o ${BUILDOUT}
-endif
-
 PKG=github.com/chadgrant/go-http-infra/infra
-LDFLAGS += -X '${PKG}.Application=${APPLICATION}'
-LDFLAGS += -X '${PKG}.Friendly=${FRIENDLY}'
-LDFLAGS += -X '${PKG}.BuildNumber=${BUILD_NUMBER}'
-LDFLAGS += -X '${PKG}.BuiltBy=${BUILD_USER}'
-LDFLAGS += -X '${PKG}.BuiltWhen=${BUILD_DATE}'
-LDFLAGS += -X '${PKG}.GitSha1=${BUILD_HASH}'
-LDFLAGS += -X '${PKG}.GitBranch=${BUILD_BRANCH}'
-LDFLAGS += -X '${PKG}.GroupID=${BUILD_GROUP}'
-LDFLAGS += -X '${PKG}.CompilerVersion=$(shell go version)'
+LDFLAGS="-w -s \
+		-X '$(PKG).Application=$(APPLICATION)' \
+		-X '$(PKG).Friendly=$(FRIENDLY)' \
+		-X '${PKG}.BuildNumber=$(BUILD_NUMBER)' \
+		-X '$(PKG).BuiltBy=$(BUILD_USER)' \
+		-X '$(PKG).BuiltWhen=$(BUILD_DATE)' \
+		-X '$(PKG).GitSha1=$(BUILD_HASH)' \
+		-X '$(PKG).GitBranch=$(BUILD_BRANCH)' \
+		-X '$(PKG).GroupID=$(BUILD_GROUP)' \
+		-X '$(PKG).CompilerVersion=$(shell go version)'"
 
 .PHONY: build
 .DEFAULT_GOAL := help
 .EXPORT_ALL_VARIABLES:
 
-clean: 
-	go clean
+clean:
+	go clean -i
+	rm -f $(OUT_DIR)$(BINARY_NAME)
 	
 build:
-	go build ${OUTPUT} -ldflags "-s ${LDFLAGS}"
+	go build -o $(OUT_DIR)$(BINARY_NAME) -ldflags $(LDFLAGS)
 
 test:
-	go test -v ./...
+	CGO_ENABLED=1 go test -v -race ./...
 
 test-integration:
-	TEST_INTEGRATION=1 && go test -v ./...
+	CGO_ENABLED=1 TEST_INTEGRATION=1 go test -race -v ./...
+
+tidy:
+ifeq (,$(shell type goimports 2>/dev/null))
+	go get golang.org/x/tools/cmd/goimports
+endif
+	go fmt ./...
+	goimports -w $(shell go list -f {{.Dir}} ./... | grep -v /vendor/)
+
+lint:
+ifeq (,$(shell type golangci-lint 2>/dev/null))
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+		| sh -s -- -b $(shell go env GOPATH)/bin v1.22.2
+endif
+	golangci-lint run --timeout=300s --skip-dirs-use-default --exclude="should have comment or be unexported"  ./...
 
 docker-build:
 	docker-compose build

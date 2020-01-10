@@ -27,7 +27,7 @@ RUN go mod download
 COPY Makefile main.go ./
 COPY store ./store/
 
-RUN BUILDOUT=/go/bin/goapp make build
+RUN BINARY_NAME=goapp OUT_DIR=/go/bin/ make build
 
 FROM $runtime_img
 ARG application

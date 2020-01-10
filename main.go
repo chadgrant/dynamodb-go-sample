@@ -13,8 +13,8 @@ import (
 	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
-	"github.com/chadgrant/go-http-infra/infra"
 	"github.com/chadgrant/go-http-infra/gorilla"
+	"github.com/chadgrant/go-http-infra/infra"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
