@@ -57,6 +57,7 @@ build-vars:
 clean:
 	go clean -i
 	rm -f $(OUT_DIR)$(BINARY_NAME)
+	rm -f profile.out coverage.html
 	
 build:
 	go build -o $(OUT_DIR)$(BINARY_NAME) -ldflags $(LDFLAGS)
@@ -91,8 +92,11 @@ ifeq (,$(shell type goreportcard-cli 2>/dev/null))
 endif
 	goreportcard-cli
 
-coverage:
-
+cover:
+	go test -covermode=atomic -coverpkg=./... -coverprofile=profile.out ./...
+	go tool cover -func=profile.out
+	go tool cover -html=profile.out -o coverage.html
+	
 docker-build:
 	docker-compose build
 

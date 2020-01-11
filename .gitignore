@@ -18,3 +18,5 @@
 dynamodb-go-sample
 vendor/*
 !vendor/.keep
+profile.out
+coverage.html
