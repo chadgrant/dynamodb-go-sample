@@ -1,74 +1,80 @@
 version: '3.4'
 
+x-default-service: &svc
+  build:
+    args: &args
+      SERVICE: ${SERVICE:-dynamodb-go-sample}
+      SERVICE_FRIENDLY: ${SERVICE_FRIENDLY:-Sample API}
+      SERVICE_DESCRIPTION: ${SERVICE_DESCRIPTION:-Sample API using dynamodb as a backing store}
+      SERVICE_URL: ${SERICE_URL:-http://localhost:8080}
+      BUILD_HASH: ${BUILD_HASH:-localbuild_hashmissing}
+      BUILD_USER: ${BUILD_USER:-unknown}
+      BUILD_BRANCH: ${BUILD_BRANCH:-nobranch}
+      BUILD_NUMBER: ${BUILD_NUMBER:-1.0.0}
+      BUILD_GROUP: ${BUILD_GROUP:-nogroupspecified}
+      BUILD_DATE: ${BUILD_DATE}
+      BUILD_REPO: ${BUILD_REPO}
+      VENDOR: ${VENDOR:-chadgrant}
+
 services:
 
-   api:
-     build:
-       context: ./
-       args:
-         - application=${APPLICATION:-dynamodb-go-sample}
-         - friendly=${FRIENDLY:-Sample API}
-         - description=${DESCRIPTION:-Sample API using dynamodb as a backing store}
-         - build_hash=${BUILD_HASH:-localbuild_hashmissing}
-         - build_user=${BUILD_USER:-unknown}
-         - build_branch=${BUILD_BRANCH:-nobranch}
-         - build_number=${BUILD_NUMBER:-1.0.0}
-         - build_group=${BUILD_GROUP:-nogroupspecified}
-         - build_date=${BUILD_DATE}
-         - build_repo=${BUILD_REPO}
-         - vendor=${VENDOR:-Chad Grant}
-         - builder_img=${DOCKER_REGISTRY}/chadgrant/base:golang-1.13.5-alpine
-         - runtime_img=${DOCKER_REGISTRY}/chadgrant/base:alpine-3.11.2
-     image: ${DOCKER_REGISTRY}/chadgrant/dynamodb-go-sample:${BUILD_NUMBER:-1.0.0}
-     container_name: sample_api
-     restart: unless-stopped
-     ports:
-       - 5000:8080
-     healthcheck:
-        test: "curl -f http://localhost:8080/health/liveness || exit 1"
-        interval: 30s
-        timeout: 2s
-        retries: 3
-        start_period: 5s
-     environment:
-        DYNAMO_ENDPOINT: "http://data:8000"       
-        AWS_REGION: "us-east-1"
-        AWS_ACCESS_KEY_ID: key
-        AWS_SECRET_ACCESS_KEY: secret
+  api:
+    <<: *svc
+    build:
+      context: ./
+      args:
+        <<: *args
+    image: ${DOCKER_REGISTRY:-docker.io}/chadgrant/dynamodb-go-sample:${BUILD_NUMBER:-1.0.0}
+    container_name: sample_api
+    restart: unless-stopped
+    ports:
+      - 5000:8080
+    healthcheck:
+      test: "curl -f http://localhost:8080/health/liveness || exit 1"
+      interval: 30s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    environment:
+      DYNAMO_ENDPOINT: "http://data:8000"       
+      AWS_REGION: "us-east-1"
+      AWS_ACCESS_KEY_ID: key
+      AWS_SECRET_ACCESS_KEY: secret
         
-   tests:
-      build:
-       context: ./
-       dockerfile: Dockerfile.tests
-       args:
-        - runtime_img=${DOCKER_REGISTRY}/chadgrant/golang-testing:1.13.5-alpine
-      image: ${DOCKER_REGISTRY}/chadgrant/dynamodb-go-sample-test:${BUILD_NUMBER:-1.0.0}
-      container_name: sample_api_test
-      depends_on:
-        - data
-        - api
-      environment:
-        DYNAMO_ENDPOINT: "http://data:8000"
-        TEST_INTEGRATION: 1
+  tests:
+    <<: *svc
+    build:
+      context: ./
+      dockerfile: Dockerfile.tests
+      args:
+        <<: *args
+    image: ${DOCKER_REGISTRY:-docker.io}/chadgrant/dynamodb-go-sample-test:${BUILD_NUMBER:-1.0.0}
+    container_name: sample_api_test
+    depends_on:
+      - data
+      - api
+    environment:
+      DYNAMO_ENDPOINT: "http://data:8000"
+      TEST_INTEGRATION: 1
 
-   ui:
-      build:
-        args:
-          - ui=typescript-react
-        context: ./ui
-      image: ${DOCKER_REGISTRY}/chadgrant/dynamodb-go-sample-ui:${BUILD_NUMBER:-1.0.0}
-      container_name: sample_api_ui
-      restart: unless-stopped
-      ports:
-       - 4000:80
-      environment:
-        API_ENDPOINT: "http://localhost:5000"
+  ui:
+    build:
+      args:
+        UI: typescript-react
+      context: ./ui
+    image: ${DOCKER_REGISTRY:-docker.io}/chadgrant/dynamodb-go-sample-ui:${BUILD_NUMBER:-1.0.0}
+    container_name: sample_api_ui
+    restart: unless-stopped
+    ports:
+      - 4000:80
+    environment:
+      API_ENDPOINT: "http://localhost:5000"
 
-   data:
-      build:
-       context: ./db
-      image: ${DOCKER_REGISTRY}/chadgrant/dynamodb-go-sample-data:${BUILD_NUMBER:-1.0.0}
-      container_name: sample_api_data
-      restart: unless-stopped
-      ports:
-         - 8000:8000
+  data:
+    build:
+      context: ./db
+    image: ${DOCKER_REGISTRY:-docker.io}/chadgrant/dynamodb-go-sample-db:${BUILD_NUMBER:-1.0.0}
+    container_name: sample_api_data
+    restart: unless-stopped
+    ports:
+      - 8000:8000

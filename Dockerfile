@@ -1,24 +1,28 @@
-ARG builder_img
-ARG runtime_img
+ARG BUILDER_IMG=chadgrant/base:golang-1.13.5-alpine
+ARG RUNTIME_IMG=chadgrant/base:alpine-3.11.2
 
-FROM $builder_img AS builder
-
-ARG application
-ARG friendly
-ARG description
-ARG build_hash
-ARG build_branch
-ARG build_user
-ARG build_number
-ARG build_group
-ARG build_repo
-ARG vendor
-ARG build_date
-ENV CGO_ENABLED=0 APPLICATION=$application FRIENDLY=$friendly DESCRIPTION="${description}" BUILD_HASH=$build_hash BUILD_BRANCH=$build_branch BUILD_USER=$build_user BUILD_NUMER=$build_number BUILD_GROUP=$build_group BUILD_REPO=$build_repo
+FROM $BUILDER_IMG AS builder
+ARG SERVICE
+ARG SERVICE_FRIENDLY
+ARG SERVICE_DESCRIPTION
+ARG SERVICE_URL
+ARG BUILD_HASH
+ARG BUILD_BRANCH
+ARG BUILD_USER
+ARG BUILD_NUMBER
+ARG BUILD_GROUP
+ARG BUILD_REPO
+ARG VENDOR
+ARG BUILD_DATE
+ENV CGO_ENABLED=0 SERVICE="${SERVICE}" SERVICE_FRIENDLY="${SERVICE_FRIENDLY}" \
+    SERVICE_DESCRIPTION="${SERVICE_DESCRIPTION}" SERVICE_URL="${SERVICE_URL}" \
+    BUILD_HASH="${BUILD_HASH}" BUILD_BRANCH="${BUILD_BRANCH}" BUILD_USER="${BUILD_USER}" \
+    BUILD_NUMBER="${BUILD_NUMBER}" BUILD_GROUP="${BUILD_GROUP}" BUILD_REPO="${BUILD_REPO}" \
+    BUILD_DATE="${BUILD_DATE}" VENDOR="${VENDOR}"
 
 RUN install-deps make
 
-WORKDIR /go/src/github.com/chadgrant/$application/
+WORKDIR /go/src/github.com/$VENDOR/$SERVICE/
 
 COPY vendor ./vendor/ 
 COPY go.mod go.sum ./
@@ -29,18 +33,19 @@ COPY store ./store/
 
 RUN BINARY_NAME=goapp OUT_DIR=/go/bin/ make build
 
-FROM $runtime_img
-ARG application
-ARG friendly
-ARG description
-ARG build_hash
-ARG build_branch
-ARG build_user
-ARG build_number
-ARG build_group
-ARG build_repo
-ARG vendor
-ARG build_date
+FROM $RUNTIME_IMG
+ARG SERVICE
+ARG SERVICE_FRIENDLY
+ARG SERVICE_DESCRIPTION
+ARG SERVICE_URL
+ARG BUILD_HASH
+ARG BUILD_BRANCH
+ARG BUILD_USER
+ARG BUILD_NUMBER
+ARG BUILD_GROUP
+ARG BUILD_REPO
+ARG VENDOR
+ARG BUILD_DATE
 
 RUN install-deps ca-certificates libc6-compat 
 RUN addgroup -S app && \
@@ -53,15 +58,15 @@ CMD ["/app/goapp"]
 
 ## http://label-schema.org/rc1/
 LABEL org.label-schema.schema-version="1.0" \
-    org.label-schema.version="${build_number}" \
-    org.label-schema.name="${friendly}" \
-    org.label-schema.description="${description}" \
-    org.label-schema.application-name="${application}" \
-    org.label-schema.build-group="${build_group}" \
-    org.label-schema.build-user="${build_user}" \
-    org.label-schema.build-date="${build_date}" \
-    org.label-schema.vcs-branch="${build_branch}" \
-    org.label-schema.vcs-ref="${build_hash}" \
-    org.label-schema.vcs-url="${build_repo}" \
-    org.label-schema.url="${build_repo}" \
-    org.label-schema.vendor="${vendor}"
+    org.label-schema.version="${BUILD_NUMBER}" \
+    org.label-schema.name="${SERVICE_FRIENDLY}" \
+    org.label-schema.description="${SERVICE_DESCRIPTION}" \
+    org.label-schema.application-name="${SERVICE}" \
+    org.label-schema.build-group="${BUILD_GROUP}" \
+    org.label-schema.build-user="${BUILD_USER}" \
+    org.label-schema.build-date="${BUILD_DATE}" \
+    org.label-schema.vcs-branch="${BUILD_BRANCH}" \
+    org.label-schema.vcs-ref="${BUILD_HASH}" \
+    org.label-schema.vcs-url="${BUILD_REPO}" \
+    org.label-schema.url="${SERVICE_URL}" \
+    org.label-schema.vendor="${VENDOR}"
