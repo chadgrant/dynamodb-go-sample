@@ -3,6 +3,8 @@ version: '3.4'
 x-default-service: &svc
   build:
     args: &args
+      VENDOR: ${VENDOR:-chadgrant}
+      GROUP: ${GROUP:-nogroupspecified}    
       SERVICE: ${SERVICE:-dynamodb-go-sample}
       SERVICE_FRIENDLY: ${SERVICE_FRIENDLY:-Sample API}
       SERVICE_DESCRIPTION: ${SERVICE_DESCRIPTION:-Sample API using dynamodb as a backing store}
@@ -11,10 +13,8 @@ x-default-service: &svc
       BUILD_USER: ${BUILD_USER:-unknown}
       BUILD_BRANCH: ${BUILD_BRANCH:-nobranch}
       BUILD_NUMBER: ${BUILD_NUMBER:-1.0.0}
-      BUILD_GROUP: ${BUILD_GROUP:-nogroupspecified}
       BUILD_DATE: ${BUILD_DATE}
       BUILD_REPO: ${BUILD_REPO}
-      VENDOR: ${VENDOR:-chadgrant}
 
 services:
 
@@ -24,7 +24,7 @@ services:
       context: ./
       args:
         <<: *args
-    image: ${DOCKER_REGISTRY:-docker.io}/chadgrant/dynamodb-go-sample:${BUILD_NUMBER:-1.0.0}
+    image: ${DOCKER_REGISTRY:-docker.io}/${VENDOR:-chadgrant}/${DOCKER_IMAGE:-dynamodb-go-sample}:${BUILD_NUMBER:-1.0.0}
     container_name: sample_api
     restart: unless-stopped
     ports:
@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile.tests
       args:
         <<: *args
-    image: ${DOCKER_REGISTRY:-docker.io}/chadgrant/dynamodb-go-sample-test:${BUILD_NUMBER:-1.0.0}
+    image: ${DOCKER_REGISTRY:-docker.io}/${VENDOR:-chadgrant}/${DOCKER_IMAGE:-dynamodb-go-sample}-test:${BUILD_NUMBER:-1.0.0}
     container_name: sample_api_test
     depends_on:
       - data
@@ -62,7 +62,7 @@ services:
       args:
         UI: typescript-react
       context: ./ui
-    image: ${DOCKER_REGISTRY:-docker.io}/chadgrant/dynamodb-go-sample-ui:${BUILD_NUMBER:-1.0.0}
+    image: ${DOCKER_REGISTRY:-docker.io}/${VENDOR:-chadgrant}/${DOCKER_IMAGE:-dynamodb-go-sample}-ui:${BUILD_NUMBER:-1.0.0}
     container_name: sample_api_ui
     restart: unless-stopped
     ports:

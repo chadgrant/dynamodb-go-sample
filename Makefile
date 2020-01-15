@@ -3,14 +3,14 @@ SERVICE_FRIENDLY?=DynamoDB and Go Service
 SERVICE_DESCRIPTION?=Sample service using Go and DynamoDB
 SERVICE_URL?=http://localhost
 VENDOR?=chadgrant
+GROUP?=sample-group
 BINARY_NAME?=$(shell basename $(PWD))
 
 BUILD_REPO?=https://github.com/chadgrant/dynamodb-go-sample
-BUILD_GROUP?=sample-group
 BUILD_NUMBER?=$(subst v,,$(shell git describe --tags --dirty --match=v* 2> /dev/null || echo 1.0.0))
 BUILD_BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 BUILD_HASH?=$(shell git rev-parse HEAD)
-BUILD_DATE?=$(shell date -u +%s)
+BUILD_DATE?=$(shell TZ=UTC date -u '+%Y-%m-%dT%H:%M:%SZ')
 
 DOCKER_REGISTRY?=docker.io
 DOCKER_IMG?=$(VENDOR)/$(SERVICE)
@@ -37,7 +37,7 @@ LDFLAGS="-w -s \
 		-X '$(PKG).BuiltWhen=$(BUILD_DATE)' \
 		-X '$(PKG).GitSha1=$(BUILD_HASH)' \
 		-X '$(PKG).GitBranch=$(BUILD_BRANCH)' \
-		-X '$(PKG).GroupID=$(BUILD_GROUP)' \
+		-X '$(PKG).GroupID=$(GROUP)' \
 		-X '$(PKG).CompilerVersion=$(shell go version)'"
 
 .DEFAULT_GOAL := help
@@ -65,11 +65,12 @@ clean: ## Cleans directory of temp files
 	-@rm -f coverage.html profile.out cpu.prof coverage.txt
 
 build-vars: ## Echo's build variables
+	@echo "VENDOR=$(VENDOR)"
+	@echo "GROUP=$(GROUP)"
 	@echo "SERVICE=$(SERVICE)"
 	@echo "SERVICE_FRIENDLY=$(SERVICE_FRIENDLY)"
 	@echo "SERVICE_DESCRIPTION=$(SERVICE_DESCRIPTION)"
 	@echo "SERVICE_URL=$(SERVICE_URL)"
-	@echo "VENDOR=$(VENDOR)"
 	@echo "BINARY_NAME=$(BINARY_NAME)"
 	@echo "DOCKER_REGISTRY=$(DOCKER_REGISTRY)"
 	@echo "DOCKER_IMG=$(DOCKER_IMG)"
@@ -77,7 +78,6 @@ build-vars: ## Echo's build variables
 	@echo "BUILD_USER=$(BUILD_USER)"
 	@echo "BUILD_REPO=$(BUILD_REPO)"	
 	@echo "BUILD_NUMBER=$(BUILD_NUMBER)"
-	@echo "BUILD_GROUP=$(BUILD_GROUP)"
 	@echo "BUILD_BRANCH=$(BUILD_BRANCH)"
 	@echo "BUILD_HASH=$(BUILD_HASH)"
 	@echo "BUILD_DATE=$(BUILD_DATE)"
@@ -172,13 +172,13 @@ docker-db: docker-internal-db ## Builds the data docker image without docker com
 
 docker-internal-%:
 	@BUILDKIT=1 docker build -f $(DOCKER_FILE) \
+		--build-arg "VENDOR=$(VENDOR)" \
+		--build-arg "GROUP=$(GROUP)" \
 		--build-arg "SERVICE=$(SERVICE)" \
 		--build-arg "SERVICE_FRIENDLY=$(SERVICE_FRIENDLY)" \
 		--build-arg "SERVICE_URL=$(SERVICE_URL)" \
 		--build-arg "SERVICE_DESCRIPTION=$(SERVICE_DESCRIPTION)" \
-		--build-arg "VENDOR=$(VENDOR)" \
-		--build-arg "BUILD_NUMBER=$(BUILD_NUMBER)" \
-		--build-arg "BUILD_GROUP=$(BUILD_GROUP)" \
+		--build-arg "BUILD_NUMBER=$(BUILD_NUMBER)" \		
 		--build-arg "BUILD_USER=$(BUILD_USER)" \
 		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
 		--build-arg "BUILD_BRANCH=$(BUILD_BRANCH)" \
