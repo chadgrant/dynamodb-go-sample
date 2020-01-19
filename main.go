@@ -51,7 +51,7 @@ func main() {
 	}
 
 	checker := health.NewHealthChecker()
-	checker.AddReadiness("dynamo", dynamo.Health(dyn, "products", time.Second*1))
+	checker.AddReadiness("dynamo", dynamo.Health(dyn, time.Second*1, "products", "categories"))
 
 	hc := health.NewHandler(checker)
 	r := mux.NewRouter()
