@@ -51,7 +51,10 @@ func main() {
 	}
 
 	checker := health.NewHealthChecker()
-	checker.AddReadiness("dynamo", dynamo.Health(dyn, time.Second*1, "products", "categories"))
+	checker.AddReadiness("dynamo", time.Second*10, dynamo.Health(dyn, time.Second*1, "products", "categories"))
+	checker.AddReadiness("google tcp connection", time.Second*10, health.TCPDialCheck("google.com:80", 3*time.Second))
+	checker.AddReadiness("http get", time.Second*10, health.HTTPGetCheck("https://golang.org", 3*time.Second))
+	checker.AddReadiness("dns loookup", time.Second*10, health.DNSResolveCheck("google.com", 3*time.Second))
 
 	hc := health.NewHandler(checker)
 	r := mux.NewRouter()
