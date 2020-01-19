@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -15,6 +16,7 @@ import (
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
 	"github.com/chadgrant/go-http-infra/gorilla"
 	"github.com/chadgrant/go-http-infra/infra"
+	"github.com/chadgrant/go-http-infra/infra/health"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -48,8 +50,12 @@ func main() {
 		repo = repository.NewMockProductRepository(crepo, 100)
 	}
 
+	checker := health.NewHealthChecker()
+	checker.AddReadiness("dynamo", dynamo.Health(dyn, "products", time.Second*1))
+
+	hc := health.NewHandler(checker)
 	r := mux.NewRouter()
-	gorilla.Handle(r)
+	gorilla.Handle(r, hc)
 	r.Use(infra.Recovery)
 
 	ph := handlers.NewProductHandler(repo)

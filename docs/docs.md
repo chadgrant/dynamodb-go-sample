@@ -121,15 +121,22 @@ Returns the healthcheck of the service.
 
 > GET /health
 
-| Property          | Description                                              |     Example    |
-| ------------------|----------------------------------------------------------|----------------|
-| reportAsOf        | The time at which this report was generated (this may not be the current time) | 2015-03-12T19:40:18.877Z         |
-| tests             | array of healthcheck test reports                        |  |
-| interval          | How often the health checks are run in seconds                        | 10 |
-| tests[].durationMilliseconds | Number of milliseconds taken to run the test  | 100 |
-| tests[].name      | name of the healthcheck test                    | sql |
-| tests[].result    | The state of the test, may be "notrun", "running", "passed", "failed" | passed |
-| tests[].testedAt  | The last time the test was run | passed |
+| Property                  | Description                                                                       |     Example               |
+| --------------------------|-----------------------------------------------------------------------------------|---------------------------|
+| report_as_of_utc          | The time at which this report was generated (this may not be the current time)    | 2015-03-12T19:40:18.877Z  |
+| interval_ms               | How often the health checks are run in seconds                                    | 10                        |
+| liveness                  | array of liveness healthcheck test reports                                        |                           |
+| liveness[].name           | name of the healthcheck test                                                      | sql                       |
+| liveness[].duration_ms    | Number of milliseconds taken to run the test                                      | 100                       |
+| liveness[].interval_ms    | if background test, how often the test is to be run                               | 100                       |
+| liveness[].status         | The state of the test, if not "OK", is in failed/error state                      | OK                        |
+| liveness[].tested_at_utc  | The last time the test was run                                                    | 2015-03-12T19:40:18.877Z  |
+| readiness                 | array of readiness healthcheck test reports                                       |                           |
+| readiness[].name          | name of the healthcheck test                                                      | sql                       |
+| readiness[].duration_ms   | Number of milliseconds taken to run the test                                      | 100                       |
+| readiness[].interval_ms   | if background test, how often the test is to be run                               | 100                       |
+| readiness[].status        | The state of the test, if not "OK", is in failed/error state                      | OK                        |
+| readiness[].tested_at_utc | The last time the test was run                                                    | 2015-03-12T19:40:18.877Z  |
 
 # Liveness / GTG - Good to Go
 
