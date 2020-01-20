@@ -12,6 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build Docker images
-      run: make docker-build
+      run: make compose-build
     - name: Test Docker Images
-      run: make docker-test
+      run: make compose-test
