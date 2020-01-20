@@ -1,7 +1,8 @@
+github.com/766b/go-outliner v0.0.0-20180511142203-fc6edecdadd7/go.mod h1:1SzhThoS5lcKfE4IFOLQJ04WCmFpaAiPe8H9yqXyYSU=
 github.com/aws/aws-sdk-go v1.26.7 h1:ObjEnmzvSdYy8KVd3me7v/UMyCn81inLy2SyoIPoBkg=
 github.com/aws/aws-sdk-go v1.26.7/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
-github.com/chadgrant/go-http-infra v1.0.7 h1:LVYh/ZAM3VYeqXcosKTmObcnvQ8UZAItSnhew4lB83k=
-github.com/chadgrant/go-http-infra v1.0.7/go.mod h1:nA6SrBZY6CTQCfPwbeipaRQd3Ka4PWGnnb7ll7KcUTY=
+github.com/chadgrant/go-http-infra v1.0.8 h1:fFN/CGo0SGA/2ZaPURS/OmUIyS3NG96PQmoDb5V6qgc=
+github.com/chadgrant/go-http-infra v1.0.8/go.mod h1:TnqoiSQMuS3/I1lHnj550d7xa2GhNuULJNCQKyhfBB8=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=

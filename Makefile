@@ -27,17 +27,20 @@ else
  BUILD_USER?=$(USER)
 endif
 
-PKG=github.com/chadgrant/go-http-infra/infra
+PKG=github.com/chadgrant/go-http-infra/infra/metadata
 LDFLAGS="-w -s \
+		-X '$(PKG).Vendor=$(VENDOR)' \
+		-X '$(PKG).Group=$(GROUP)' \
 		-X '$(PKG).Service=$(SERVICE)' \
 		-X '$(PKG).Friendly=$(SERVICE_FRIENDLY)' \
 		-X '$(PKG).Description=$(SERVICE_DESCRIPTION)' \
+		-X '$(PKG).Url=$(SERVICE_URL)' \
+		-X '$(PKG).Repo=$(BUILD_REPO)' \
 		-X '${PKG}.BuildNumber=$(BUILD_NUMBER)' \
 		-X '$(PKG).BuiltBy=$(BUILD_USER)' \
-		-X '$(PKG).BuiltWhen=$(BUILD_DATE)' \
-		-X '$(PKG).GitSha1=$(BUILD_HASH)' \
+		-X '$(PKG).BuildTime=$(BUILD_DATE)' \
+		-X '$(PKG).GitHash=$(BUILD_HASH)' \
 		-X '$(PKG).GitBranch=$(BUILD_BRANCH)' \
-		-X '$(PKG).GroupID=$(GROUP)' \
 		-X '$(PKG).CompilerVersion=$(shell go version)'"
 
 .DEFAULT_GOAL := help
