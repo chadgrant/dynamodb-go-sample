@@ -14,7 +14,6 @@ import (
 	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
-	"github.com/chadgrant/go-http-infra/gorilla"
 	"github.com/chadgrant/go-http-infra/infra"
 	"github.com/chadgrant/go-http-infra/infra/health"
 	"github.com/gorilla/mux"
@@ -50,16 +49,19 @@ func main() {
 		repo = repository.NewMockProductRepository(crepo, 100)
 	}
 
-	checker := health.NewHealthChecker()
+	r := mux.NewRouter()
+	r.Use(infra.Recovery)
+
+	gorillaW := func(s string, w func(http.ResponseWriter, *http.Request)) {
+		r.HandleFunc(s, w)
+	}
+
+	checker, _ := infra.RegisterInfraHandlers(gorillaW)
+
 	checker.AddReadiness("dynamo", time.Second*10, dynamo.Health(dyn, time.Second*1, "products", "categories"))
 	checker.AddReadiness("google tcp connection", time.Second*10, health.TCPDialCheck("google.com:80", 3*time.Second))
 	checker.AddReadiness("http get", time.Second*10, health.HTTPGetCheck("https://golang.org", 3*time.Second))
 	checker.AddReadiness("dns loookup", time.Second*10, health.DNSResolveCheck("google.com", 3*time.Second))
-
-	hc := health.NewHandler(checker)
-	r := mux.NewRouter()
-	gorilla.Handle(r, hc)
-	r.Use(infra.Recovery)
 
 	ph := handlers.NewProductHandler(repo)
 	ch := handlers.NewCategoryHandler(crepo)
