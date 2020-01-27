@@ -58,7 +58,7 @@ test: ## Run Tests
 
 test-int: # Run integration tests
 	CGO_ENABLED=1 TEST_INTEGRATION=1 go test -race -v ./...
-	cd tests; npm test
+	cd tests/endpoint; npm test
 	
 clean: ## Cleans directory of temp files
 	-GO111MODULE=off go clean -i
@@ -157,7 +157,7 @@ docker: DOCKER_FILE=Dockerfile
 docker: IMG=$(DOCKER_IMG)
 docker: docker-internal-normal ## Builds the api docker image without docker compose (faster)
 
-docker-tests: DOCKER_FILE=Dockerfile.tests
+docker-tests: DOCKER_FILE=tests/Dockerfile
 docker-tests: IMG=$(DOCKER_TEST_IMG)
 docker-tests: docker-internal-tests ## Builds the test docker image without docker compose (faster)
 

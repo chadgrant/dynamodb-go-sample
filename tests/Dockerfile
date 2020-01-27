@@ -17,7 +17,7 @@ RUN go mod download
 COPY Makefile main.go ./ 
 COPY store ./store/
 COPY tests ./tests/
-RUN cd tests && npm install
+RUN cd tests/endpoint && npm install
 
 ARG BUILD_HASH
 ARG BUILD_BRANCH

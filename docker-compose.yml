@@ -44,8 +44,8 @@ services:
   tests:
     <<: *svc
     build:
-      context: ./
-      dockerfile: Dockerfile.tests
+      context: .
+      dockerfile: tests/Dockerfile
       args:
         <<: *args
     image: ${DOCKER_REGISTRY:-docker.io}/${VENDOR:-chadgrant}/${DOCKER_IMAGE:-dynamodb-go-sample}-test:${BUILD_NUMBER:-1.0.0}
