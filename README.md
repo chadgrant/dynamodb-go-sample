@@ -11,7 +11,7 @@ make docker-build
 ```bash
 make docker-build
 make docker-run
-curl http://localhost:5000/product/hats
+curl http://localhost:5000/products/hats
 ```
 
 ## UI
