@@ -58,6 +58,7 @@ test: ## Run Tests
 
 test-int: # Run integration tests
 	CGO_ENABLED=1 TEST_INTEGRATION=1 go test -race -v ./...
+	cd tests; npm test
 	
 clean: ## Cleans directory of temp files
 	-GO111MODULE=off go clean -i
@@ -137,7 +138,7 @@ compose-up: ## Start all docker containers in docker-compose.yml
 compose-test:  ## Run tests in docker containers with docker-compose
 	@docker-compose up --no-start
 	@docker-compose start data
-	@sleep 5 #wait for infra to come up
+	@sleep 10 #wait for infra to come up
 	@docker-compose run tests
 
 docker-stop: ## Stop all containers
@@ -178,7 +179,7 @@ docker-internal-%:
 		--build-arg "SERVICE_FRIENDLY=$(SERVICE_FRIENDLY)" \
 		--build-arg "SERVICE_URL=$(SERVICE_URL)" \
 		--build-arg "SERVICE_DESCRIPTION=$(SERVICE_DESCRIPTION)" \
-		--build-arg "BUILD_NUMBER=$(BUILD_NUMBER)" \		
+		--build-arg "BUILD_NUMBER=$(BUILD_NUMBER)" \
 		--build-arg "BUILD_USER=$(BUILD_USER)" \
 		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
 		--build-arg "BUILD_BRANCH=$(BUILD_BRANCH)" \

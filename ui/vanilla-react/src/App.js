@@ -16,7 +16,7 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    fetch(`${API_ENDPOINT}/category`)
+    fetch(`${API_ENDPOINT}/categories`)
     .then(res => res.json())
     .then((data) => {
       this.setState((prev) => {
@@ -63,7 +63,7 @@ export default class App extends Component {
   }
 
   loadPage = (category, id, price) => {
-    fetch(`${API_ENDPOINT}/product/${category.toLowerCase()}?last=${id}&lastprice=${price}`)
+    fetch(`${API_ENDPOINT}/products/${category.toLowerCase()}?last=${id}&lastprice=${price}`)
     .then(res => res.json())
     .then((data) => {
       this.setState((prev) => {
@@ -73,7 +73,7 @@ export default class App extends Component {
           return prev;
       });
     })
-    .catch(console.log)    
+    .catch(console.log)
   }
 
   add = () => {
@@ -107,7 +107,7 @@ export default class App extends Component {
     product.description = description;
     
     const method = (product.id === undefined) ? 'POST':'PUT';
-    const url = (product.id === undefined) ? `${API_ENDPOINT}/product/`:`${API_ENDPOINT}/product/${product.id}`;
+    const url = (product.id === undefined) ? `${API_ENDPOINT}/products/`:`${API_ENDPOINT}/product/${product.id}`;
 
     fetch(url,{
       method: method,
@@ -163,7 +163,7 @@ export default class App extends Component {
                     disabled={bprev}>Previous</button>
                 <button
                     className="btn btn-primary float-right btn-add"
-                    onClick={this.add}>Add New</button>                
+                    onClick={this.add}>Add New</button>
                 </div>
               <div className="card-body">
                 <table className="table table-hover">
@@ -171,14 +171,14 @@ export default class App extends Component {
                     <Products 
                       products={this.state.products} 
                       delete={this.delete}
-                      edit={this.edit}                
+                      edit={this.edit}
                     />
                 </table>
             </div>
           </div>
         </div>
       </div>
-    </div>      
+    </div>
     )
   }
 }

@@ -49,7 +49,7 @@ func main() {
 		repo = repository.NewMockProductRepository(crepo, 100)
 	}
 
-	r := mux.NewRouter()
+	r := mux.NewRouter().StrictSlash(false)
 	r.Use(infra.Recovery)
 
 	gorillaW := func(s string, w func(http.ResponseWriter, *http.Request)) {
@@ -57,19 +57,18 @@ func main() {
 	}
 
 	checker, _ := infra.RegisterInfraHandlers(gorillaW)
-
 	checker.AddReadiness("dynamo", time.Second*10, dynamo.Health(dyn, time.Second*1, "products", "categories"))
 	checker.AddReadiness("google tcp connection", time.Second*10, health.TCPDialCheck("google.com:80", 3*time.Second))
 	checker.AddReadiness("http get", time.Second*10, health.HTTPGetCheck("https://golang.org", 3*time.Second))
-	checker.AddReadiness("dns loookup", time.Second*10, health.DNSResolveCheck("google.com", 3*time.Second))
+	checker.AddReadiness("dns lookup", time.Second*10, health.DNSResolveCheck("google.com", 3*time.Second))
 
 	ph := handlers.NewProductHandler(repo)
 	ch := handlers.NewCategoryHandler(crepo)
 
-	r.HandleFunc("/category", ch.GetAll).Methods(http.MethodGet)
+	r.HandleFunc("/categories", ch.GetAll).Methods(http.MethodGet)
 
-	r.HandleFunc("/product/{category:[A-Za-z]+}", ph.GetPaged).Methods(http.MethodGet)
-	r.HandleFunc("/product/", ph.Add).Methods(http.MethodPost)
+	r.HandleFunc("/products/{category:[A-Za-z]+}", ph.GetPaged).Methods(http.MethodGet)
+	r.HandleFunc("/products/", ph.Add).Methods(http.MethodPost)
 	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Upsert).Methods(http.MethodPut)
 	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Get).Methods(http.MethodGet)
 	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Delete).Methods(http.MethodDelete)

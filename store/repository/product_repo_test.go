@@ -87,6 +87,7 @@ func testGetPaged(categories []string, repo ProductRepository, t *testing.T) {
 	last := ""
 	lastPrice := float64(0)
 	size := 25
+	pages := 0
 
 	for {
 		products, err := repo.GetPaged(categories[0], size, last, lastPrice)
@@ -112,10 +113,15 @@ func testGetPaged(categories []string, repo ProductRepository, t *testing.T) {
 
 		last = products[len(products)-1].ID
 		lastPrice = products[len(products)-1].Price
+		pages++
 	}
 
 	if len(all) == 0 {
 		t.Errorf("did not return products")
+	}
+
+	if pages < 3 {
+		t.Errorf("did not get enough pages %d", pages)
 	}
 }
 

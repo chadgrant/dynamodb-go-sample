@@ -64,20 +64,24 @@ func TestProductHandler(t *testing.T) {
 }
 
 func testAdd(handler *ProductHandler, t *testing.T) {
-	b := []byte("{ \"name\":\"created from web test\", \"description\": \"nice product from web test\", \"price\": 5.77 }")
-	r, _ := http.NewRequest(http.MethodPost, "product/hats", bytes.NewBuffer(b))
+	b := []byte("{ \"name\":\"created from web test\", \"category\": \"hats\",  \"description\": \"nice product from web test\", \"price\": 5.77 }")
+	r, _ := http.NewRequest(http.MethodPost, "products/hats", bytes.NewBuffer(b))
 	w := httptest.NewRecorder()
 
 	handler.Add(w, r)
 
 	if w.Code != http.StatusCreated {
-		t.Errorf("expected no content response got %d", w.Code)
+		t.Errorf("expected created respose got %d", w.Code)
 	}
 }
 
 func testGetPaged(handler *ProductHandler, t *testing.T) {
-	r, _ := http.NewRequest(http.MethodGet, "product/hats", nil)
+	r, _ := http.NewRequest(http.MethodGet, "products/hats", nil)
 	w := httptest.NewRecorder()
+	m := map[string]string{
+		"category": "hats",
+	}
+	r = mux.SetURLVars(r, m)
 
 	handler.GetPaged(w, r)
 
@@ -97,7 +101,7 @@ func testGetPaged(handler *ProductHandler, t *testing.T) {
 }
 
 func testGet(id string, handler *ProductHandler, t *testing.T) {
-	r, _ := http.NewRequest(http.MethodGet, "product/hats/"+id, nil)
+	r, _ := http.NewRequest(http.MethodGet, "product/"+id, nil)
 	w := httptest.NewRecorder()
 
 	vars := map[string]string{
@@ -137,7 +141,7 @@ func testUpsert(product *store.Product, handler *ProductHandler, t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, _ := http.NewRequest(http.MethodPut, "product/hats/"+product.ID, bytes.NewBuffer(b))
+	r, _ := http.NewRequest(http.MethodPut, "product/"+product.ID, bytes.NewBuffer(b))
 	w := httptest.NewRecorder()
 
 	vars := map[string]string{
@@ -152,7 +156,7 @@ func testUpsert(product *store.Product, handler *ProductHandler, t *testing.T) {
 		t.Fatalf("unexpected status, expected %d got %d", http.StatusAccepted, w.Code)
 	}
 
-	r, _ = http.NewRequest(http.MethodGet, "product/hats/"+copy.ID, nil)
+	r, _ = http.NewRequest(http.MethodGet, "product/"+copy.ID, nil)
 	w = httptest.NewRecorder()
 
 	r = mux.SetURLVars(r, vars)
@@ -179,7 +183,7 @@ func testUpsert(product *store.Product, handler *ProductHandler, t *testing.T) {
 }
 
 func testDelete(productID string, handler *ProductHandler, t *testing.T) {
-	r, _ := http.NewRequest(http.MethodDelete, "product/hats/"+productID, nil)
+	r, _ := http.NewRequest(http.MethodDelete, "product/"+productID, nil)
 	w := httptest.NewRecorder()
 
 	vars := map[string]string{
@@ -195,7 +199,7 @@ func testDelete(productID string, handler *ProductHandler, t *testing.T) {
 		return
 	}
 
-	r, _ = http.NewRequest(http.MethodGet, "product/hats/"+productID, nil)
+	r, _ = http.NewRequest(http.MethodGet, "product/"+productID, nil)
 	w = httptest.NewRecorder()
 	r = mux.SetURLVars(r, vars)
 

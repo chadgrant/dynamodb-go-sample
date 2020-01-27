@@ -27,20 +27,20 @@ services:
     image: ${DOCKER_REGISTRY:-docker.io}/${VENDOR:-chadgrant}/${DOCKER_IMAGE:-dynamodb-go-sample}:${BUILD_NUMBER:-1.0.0}
     container_name: sample_api
     restart: unless-stopped
-    ports:
-      - 5000:8080
     healthcheck:
       test: "curl -f http://localhost:8080/live || exit 1"
       interval: 30s
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 5s    
+    ports:
+      - 5000:8080
     environment:
-      DYNAMO_ENDPOINT: "http://data:8000"       
+      DYNAMO_ENDPOINT: "http://data:8000"
       AWS_REGION: "us-east-1"
       AWS_ACCESS_KEY_ID: key
       AWS_SECRET_ACCESS_KEY: secret
-        
+      
   tests:
     <<: *svc
     build:
@@ -56,6 +56,7 @@ services:
     environment:
       DYNAMO_ENDPOINT: "http://data:8000"
       TEST_INTEGRATION: 1
+      API_ENDPOINT: "http://api:8080"
 
   ui:
     build:

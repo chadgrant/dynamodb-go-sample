@@ -8,7 +8,7 @@ export default class RESTCategoryRepository implements CategoryRepository {
     }
 
     async getAll(): Promise<string[]> {
-        const resp = await fetch(`${this.baseurl}/category`);
+        const resp = await fetch(`${this.baseurl}/categories`);
         return await resp.json() as Promise<string[]>;
     }
 }

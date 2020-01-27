@@ -1,5 +1,5 @@
-import ProductRepository from '../ProductRepository'
-import Product,{ProductResponse} from "../../models/Product"
+import Product, { ProductResponse } from "../../models/Product";
+import ProductRepository from '../ProductRepository';
 
 export default class RESTProductRepository implements ProductRepository {
     endpoint:string;
@@ -9,7 +9,7 @@ export default class RESTProductRepository implements ProductRepository {
     }
 
     async getPaged(category:string, last?:string, lastPrice?: number, size:number = 25): Promise<Product[]> {
-        const r = await fetch(`${this.endpoint}/product/${category.toLowerCase()}?last=${((last !== undefined) ? last : "")}&lastprice=${((lastPrice !== undefined ? lastPrice : ""))}`);
+        const r = await fetch(`${this.endpoint}/products/${category.toLowerCase()}?last=${((last !== undefined) ? last : "")}&lastprice=${((lastPrice !== undefined ? lastPrice : ""))}`);
         if (!r.ok) {
             return new Array<Product>();
         }
@@ -26,7 +26,7 @@ export default class RESTProductRepository implements ProductRepository {
     }
 
     async add(product: Product): Promise<Product> {
-        const r = await fetch(`${this.endpoint}/product/`,{
+        const r = await fetch(`${this.endpoint}/products/`,{
             method: 'POST',
             headers: {
                 'Accept': 'application/json',

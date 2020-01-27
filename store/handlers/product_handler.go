@@ -41,7 +41,7 @@ func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 	next := ""
 	if len(products) > 0 {
 		p := products[len(products)-1]
-		next = fmt.Sprintf("/product/%s/?last=%s&lastPrice=%.2f", cat, p.ID, p.Price)
+		next = fmt.Sprintf("/products/%s?last=%s&lastprice=%.2f", cat, p.ID, p.Price)
 	}
 
 	returnJson(w, r, &pagedProducts{
@@ -82,6 +82,21 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	p.ID = id.String()
 
+	if len(p.Category) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if len(p.Name) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if p.Price <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -102,6 +117,21 @@ func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.ID = id
+
+	if len(p.Category) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if len(p.Name) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if p.Price <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
