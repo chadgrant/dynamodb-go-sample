@@ -8,7 +8,6 @@ describe('Categories', () => {
 
     before(()=>{
         req = get("/categories");
-        console.log("endpoint=" + process.env.API_ENDPOINT)
     });
 
     it("returns 200 with content type of json",async () => {
