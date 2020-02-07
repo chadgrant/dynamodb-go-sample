@@ -1,0 +1,32 @@
+{
+    "$id": "http://schemas.sentex.io/types/product.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "a simple product",
+    "type": "object",
+    "properties": {
+      "id": {
+        "$ref": "http://schemas.sentex.io/types/product.id.json"
+      },
+      "category": {
+        "$ref": "http://schemas.sentex.io/types/category.json"
+      },
+      "name": {
+        "type": "string",
+        "minimum": 1,
+        "maximum": 255
+      },
+      "description": {
+        "type": "string"
+      },
+      "price": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "required": [
+      "id",
+      "category",
+      "name",
+      "price"
+    ]
+  }

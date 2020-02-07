@@ -7,7 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+
 	"github.com/chadgrant/dynamodb-go-sample/store"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 )
 
 type DynamoDBProductRepository struct {
@@ -15,7 +17,7 @@ type DynamoDBProductRepository struct {
 	dynamo *dynamodb.DynamoDB
 }
 
-func NewProductRepository(table string, dyn *dynamodb.DynamoDB) *DynamoDBProductRepository {
+func NewProductRepository(table string, dyn *dynamodb.DynamoDB) repository.ProductRepository {
 	return &DynamoDBProductRepository{
 		table:  table,
 		dynamo: dyn,

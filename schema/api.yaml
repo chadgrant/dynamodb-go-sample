@@ -1,0 +1,31 @@
+openapi: 3.0.1
+servers:
+  - url: '{scheme}://products.sentex.io'
+    variables:
+      scheme:
+        desciption: 'available from http & https'
+        enum:
+          - 'http'
+          - 'https'
+        default: 'http'
+info:
+  version: 1.0.0
+  title: Products api
+  contact: 
+    name: Chad Grant
+    email: chad.grant@not-publishing.com
+  description: >-
+    This is a sample api using Go and Dynamo DB
+
+paths:
+  /categories:
+    get:
+    desciption: >-
+        Provides the available categories for the store
+    operationId: list-categories
+    responses:
+      '200':
+      content:
+        application/json:
+        schema:
+          $ref: './response/categories.json#/categories'

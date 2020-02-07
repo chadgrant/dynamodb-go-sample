@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+
 	"github.com/chadgrant/dynamodb-go-sample/store"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/go-http-infra/infra"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
 type ProductHandler struct {
@@ -44,7 +45,7 @@ func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 		next = fmt.Sprintf("/products/%s?last=%s&lastprice=%.2f", cat, p.ID, p.Price)
 	}
 
-	returnJson(w, r, &pagedProducts{
+	returnJSON(w, r, &pagedProducts{
 		Results: products,
 		Next:    next,
 	})
@@ -64,7 +65,7 @@ func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	returnJson(w, r, p)
+	returnJSON(w, r, p)
 }
 
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
@@ -81,21 +82,6 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.ID = id.String()
-
-	if len(p.Category) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if len(p.Name) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if p.Price <= 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -117,21 +103,6 @@ func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.ID = id
-
-	if len(p.Category) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if len(p.Name) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if p.Price <= 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -161,7 +132,7 @@ func param(r *http.Request, key, defaultValue string) string {
 	return defaultValue
 }
 
-func returnJson(w http.ResponseWriter, r *http.Request, o interface{}) {
+func returnJSON(w http.ResponseWriter, r *http.Request, o interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(o); err != nil {

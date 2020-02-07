@@ -11,19 +11,21 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
-	"github.com/chadgrant/dynamodb-go-sample/store/repository"
-	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
-	"github.com/chadgrant/go-http-infra/infra"
-	"github.com/chadgrant/go-http-infra/infra/health"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+
+	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
+	"github.com/chadgrant/go-http-infra/infra"
+	"github.com/chadgrant/go-http-infra/infra/health"
+	"github.com/chadgrant/go-http-infra/infra/schema"
 )
 
 func main() {
 	host := *flag.String("host", infra.GetEnvVar("SVC_HOST", "0.0.0.0"), "default binding 0.0.0.0")
 	port := *flag.Int("port", infra.GetEnvVarInt("SVC_PORT", 8080), "default port 8080")
-	mock := *flag.Bool("mock", infra.GetEnvVarBool("SVC_MOCK_DATA", false), "use mock database")
+	usemocks := *flag.Bool("mock", infra.GetEnvVarBool("SVC_MOCK_DATA", false), "use mock database")
 	region := *flag.String("region", infra.GetEnvVar("AWS_REGION", "us-east-1"), "aws region")
 	//prefer using IAM roles, but local dynamo demands creds....
 	accessKey := *flag.String("accessKey", infra.GetEnvVar("AWS_ACCESS_KEY_ID", "key"), "aws access key")
@@ -40,13 +42,11 @@ func main() {
 		Endpoint:    aws.String(endpoint),
 	})
 
-	var repo repository.ProductRepository
-	var crepo repository.CategoryRepository
-	repo = dynamo.NewProductRepository(table, dyn)
-	crepo = dynamo.NewCategoryRepository(ctable, dyn)
-	if mock {
-		crepo = repository.NewMockCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
-		repo = repository.NewMockProductRepository(crepo, 100)
+	repo := dynamo.NewProductRepository(table, dyn)
+	crepo := dynamo.NewCategoryRepository(ctable, dyn)
+	if usemocks {
+		crepo = mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
+		repo = mock.NewProductRepository(crepo, 100)
 	}
 
 	r := mux.NewRouter().StrictSlash(false)
@@ -56,21 +56,46 @@ func main() {
 		r.HandleFunc(s, w)
 	}
 
-	checker, _ := infra.RegisterInfraHandlers(gorillaW)
+	checker, _, schemas, err := infra.RegisterInfraHandlers(gorillaW)
+	if err != nil {
+		panic(err)
+	}
 	checker.AddReadiness("dynamo", time.Second*10, dynamo.Health(dyn, time.Second*1, "products", "categories"))
 	checker.AddReadiness("google tcp connection", time.Second*10, health.TCPDialCheck("google.com:80", 3*time.Second))
 	checker.AddReadiness("http get", time.Second*10, health.HTTPGetCheck("https://golang.org", 3*time.Second))
 	checker.AddReadiness("dns lookup", time.Second*10, health.DNSResolveCheck("google.com", 3*time.Second))
 
+	if err := schemas.AddDirectory("./schema"); err != nil {
+		panic(err)
+	}
+	validator, err := schema.NewValidator(schemas)
+	if err != nil {
+		panic(err)
+	}
+
 	ph := handlers.NewProductHandler(repo)
 	ch := handlers.NewCategoryHandler(crepo)
 
-	r.HandleFunc("/categories", ch.GetAll).Methods(http.MethodGet)
+	r.HandleFunc("/categories",
+		validator.Produces("http://products.sentex.io/categories.json", ch.GetAll),
+	).Methods(http.MethodGet)
 
-	r.HandleFunc("/products/{category:[A-Za-z]+}", ph.GetPaged).Methods(http.MethodGet)
-	r.HandleFunc("/products/", ph.Add).Methods(http.MethodPost)
-	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Upsert).Methods(http.MethodPut)
-	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Get).Methods(http.MethodGet)
+	r.HandleFunc("/products/{category:[A-Za-z]+}",
+		validator.Produces("http://products.sentex.io/product.paged.json", ph.GetPaged),
+	).Methods(http.MethodGet)
+
+	r.HandleFunc("/products/",
+		validator.Consumes("http://products.sentex.io/post.product.json", ph.Add),
+	).Methods(http.MethodPost)
+
+	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}",
+		validator.Consumes("http://products.sentex.io/put.product.json", ph.Upsert),
+	).Methods(http.MethodPut)
+
+	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}",
+		validator.Produces("http://products.sentex.io/product.json", ph.Get),
+	).Methods(http.MethodGet)
+
 	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Delete).Methods(http.MethodDelete)
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/")))

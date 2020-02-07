@@ -21,5 +21,5 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	returnJson(w, r, cats)
+	returnJSON(w, r, cats)
 }

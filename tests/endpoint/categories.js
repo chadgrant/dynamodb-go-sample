@@ -1,28 +1,25 @@
-const request = require('supertest');
-const {expect} = require('chai');
-const {get} = request(process.env.API_ENDPOINT || 'http://localhost:5000');
+const { expect } = require('chai');
+const { client } = require('./test-helpers');
+
+const { get } = client(process.env.API_ENDPOINT || 'http://localhost:5000', '../../schema/');
 
 describe('Categories', () => {
 
-    var req;
-
-    before(()=>{
-        req = get("/categories");
+    it("returns 200 with content type of json", async () => {
+       await get("/categories")
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect('X-Schema','http://products.sentex.io/categories.json');
     });
 
-    it("returns 200 with content type of json",async () => {
-        await req
-        .expect(200)
-        .expect('Content-Type',/json/);
+    it("validates", async () => {
+        await get("/categories").validate();
     });
 
     it("returns categories", async () => {
-        const b = (await req).body;
-
-        expect(b,"results").is.a('array');
-        expect(b.length,"results").is.greaterThan(0);
-        b.forEach(c => {
-            expect(c,"category").is.not.empty;
+        const body = (await get("/categories")).body;
+        body.forEach(c => {
+            expect(c, "category").is.not.empty;
         });
     });
 });

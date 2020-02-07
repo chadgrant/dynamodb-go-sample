@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"os"
@@ -9,12 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+
+	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 )
 
 func TestCategoryMock(t *testing.T) {
-	c := NewMockCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
-	runTests(c, NewMockProductRepository(c, 100), t)
+	c := mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
+	runTests(c, mock.NewProductRepository(c, 100), t)
 }
 
 func TestCategoryDynamoIntegration(t *testing.T) {
@@ -37,7 +40,7 @@ func TestCategoryDynamoIntegration(t *testing.T) {
 	runCategoryTests(dynamo.NewCategoryRepository("categories", dyn), t)
 }
 
-func runCategoryTests(repo CategoryRepository, t *testing.T) {
+func runCategoryTests(repo repository.CategoryRepository, t *testing.T) {
 
 	t.Run("GetAll", func(t *testing.T) {
 		testCategoryGet(repo, t)
@@ -52,7 +55,7 @@ func runCategoryTests(repo CategoryRepository, t *testing.T) {
 	})
 }
 
-func testCategoryGet(repo CategoryRepository, t *testing.T) {
+func testCategoryGet(repo repository.CategoryRepository, t *testing.T) {
 	cats, err := repo.GetAll()
 	if err != nil {
 		t.Errorf("error getting categories %v", err)
@@ -66,7 +69,7 @@ func testCategoryGet(repo CategoryRepository, t *testing.T) {
 	}
 }
 
-func testCategoryUpsert(repo CategoryRepository, t *testing.T) {
+func testCategoryUpsert(repo repository.CategoryRepository, t *testing.T) {
 	cats, err := repo.GetAll()
 	if err != nil {
 		t.Errorf("error getting categories %v", err)
@@ -80,6 +83,10 @@ func testCategoryUpsert(repo CategoryRepository, t *testing.T) {
 	}
 
 	cats, err = repo.GetAll()
+	if err != nil {
+		t.Errorf("getting all %v", err)
+	}
+
 	for _, v := range cats {
 		if v == "testing" {
 			return
@@ -88,7 +95,7 @@ func testCategoryUpsert(repo CategoryRepository, t *testing.T) {
 	t.Errorf("could not find new key upserted : testing")
 }
 
-func testCategoryDelete(repo CategoryRepository, t *testing.T) {
+func testCategoryDelete(repo repository.CategoryRepository, t *testing.T) {
 	cats, err := repo.GetAll()
 	if err != nil {
 		t.Errorf("error getting categories %v", err)
@@ -106,6 +113,9 @@ func testCategoryDelete(repo CategoryRepository, t *testing.T) {
 	}
 
 	cats, err = repo.GetAll()
+	if err != nil {
+		t.Errorf("getting all %v", err)
+	}
 	for _, v := range cats {
 		if v == "testing" {
 			t.Errorf("should not have found category : testing")

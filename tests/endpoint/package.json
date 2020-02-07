@@ -3,6 +3,7 @@
         "test": "mocha . --slow 100 --async-only"
     },
     "dependencies": {
+        "ajv": "^6.11.0",
         "chai": "^4.2.0",
         "mocha": "^7.0.0",
         "supertest": "^4.0.2"

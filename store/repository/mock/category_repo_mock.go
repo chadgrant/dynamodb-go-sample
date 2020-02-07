@@ -1,4 +1,4 @@
-package repository
+package mock
 
 import "sort"
 
@@ -6,12 +6,14 @@ type MockCategoryRepository struct {
 	categories map[string]interface{}
 }
 
-func NewMockCategoryRepository(categories ...string) *MockCategoryRepository {
+func NewCategoryRepository(categories ...string) *MockCategoryRepository {
 	r := &MockCategoryRepository{
 		categories: make(map[string]interface{}),
 	}
 	for _, c := range categories {
-		r.Upsert(c)
+		if err := r.Upsert(c); err != nil {
+			panic(err)
+		}
 	}
 	return r
 }
@@ -31,8 +33,8 @@ func (r *MockCategoryRepository) Upsert(category string) error {
 }
 
 func (r *MockCategoryRepository) Delete(category string) error {
-	if _, ok := r.categories[category]; ok {
-		delete(r.categories, category)
-	}
+
+	delete(r.categories, category)
+
 	return nil
 }

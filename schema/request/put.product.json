@@ -1,0 +1,25 @@
+{
+    "$id": "http://products.sentex.io/put.product.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "a simple product",
+    "type": "object",
+    "properties": {
+      "category": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "price": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "category",
+      "name",
+      "price"
+    ]
+  }

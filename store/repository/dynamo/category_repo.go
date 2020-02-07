@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 )
 
 type DynamoDBCategoryRepository struct {
@@ -12,7 +13,7 @@ type DynamoDBCategoryRepository struct {
 	dynamo *dynamodb.DynamoDB
 }
 
-func NewCategoryRepository(table string, dyn *dynamodb.DynamoDB) *DynamoDBCategoryRepository {
+func NewCategoryRepository(table string, dyn *dynamodb.DynamoDB) repository.CategoryRepository {
 	return &DynamoDBCategoryRepository{
 		table:  table,
 		dynamo: dyn,

@@ -1,0 +1,61 @@
+{
+    "$id": "http://shcemas.sentex.io/health",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "health check reports",
+    "definitions": {
+        "healthcheck" : {
+            "name" : {
+                "type": "string",
+                "description": "name of the healthcheck test",
+                "minimum" : 2,
+                "maximum" : 50
+            },
+            "interval_ms" : {
+                "type" : "number",
+                "description": "if background test, how often the test is to be run"
+            },
+            "duration_ms" : {
+                "type": "number",
+                "description": "Number of milliseconds taken to run the test"
+            },
+            "status" : {
+                "type": "string",
+                "description": "The state of the test, if not \"OK\", is in failed/error state",
+                "minimum" : 2
+            },
+            "tested_at_utc" : {
+                "type": "string",
+                "format": "date-time",
+                "description": "The last time the test was run"
+            },
+            "required" : ["name", "duration_ms", "status", "tested_at_utc"]
+        }
+    },
+    "type": "object",
+    "properties": {
+        "liveness": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/healthcheck"
+            },
+            "description": "array of liveness healthcheck test reports"
+        },
+        "readiness": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/healthcheck"
+            },
+            "description": "array of readiness healthcheck test reports"
+        },                
+        "report_as_of_utc": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The time at which this report was generated (this may not be the current time)"
+        },
+        "duration_ms" : {
+            "type" : "number",
+            "description": "Sum of all check durations"
+        }
+    },
+    "required": ["report_as_of_utc","duration_ms","liveness","readiness"]
+}

@@ -45,6 +45,7 @@ USER app
 WORKDIR /app
 
 COPY docs /app/docs/
+COPY schema /app/schema/
 COPY --from=builder /go/bin/goapp /app/
 
 CMD ["/app/goapp"]

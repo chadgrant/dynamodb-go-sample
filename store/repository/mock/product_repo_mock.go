@@ -1,4 +1,4 @@
-package repository
+package mock
 
 import (
 	"fmt"
@@ -8,22 +8,25 @@ import (
 	"time"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/google/uuid"
 )
 
 type MockRepository struct {
 	products   []*store.Product
 	lookup     map[string]string
-	categories CategoryRepository
+	categories repository.CategoryRepository
 }
 
-func NewMockProductRepository(repo CategoryRepository, max int) *MockRepository {
+func NewProductRepository(repo repository.CategoryRepository, max int) repository.ProductRepository {
 	m := &MockRepository{
 		products:   make([]*store.Product, 0),
 		lookup:     make(map[string]string),
 		categories: repo,
 	}
-	m.create(max)
+	if err := m.create(max); err != nil {
+		panic(err)
+	}
 	return m
 }
 

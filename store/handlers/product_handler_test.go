@@ -9,13 +9,13 @@ import (
 	"testing"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
-	"github.com/chadgrant/dynamodb-go-sample/store/repository"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 	"github.com/gorilla/mux"
 )
 
 func TestProductHandler(t *testing.T) {
-	c := repository.NewMockCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
-	repo := repository.NewMockProductRepository(c, 100)
+	c := mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
+	repo := mock.NewProductRepository(c, 100)
 
 	h := NewProductHandler(repo)
 

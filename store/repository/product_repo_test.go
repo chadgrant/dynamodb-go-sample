@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"os"
@@ -9,14 +9,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/chadgrant/dynamodb-go-sample/store"
-	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
 	"github.com/google/uuid"
+
+	"github.com/chadgrant/dynamodb-go-sample/store"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 )
 
 func TestMock(t *testing.T) {
-	c := NewMockCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
-	runTests(c, NewMockProductRepository(c, 100), t)
+	c := mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
+	runTests(c, mock.NewProductRepository(c, 100), t)
 }
 
 func TestDynamoIntegration(t *testing.T) {
@@ -39,7 +42,7 @@ func TestDynamoIntegration(t *testing.T) {
 	runTests(dynamo.NewCategoryRepository("categories", dyn), dynamo.NewProductRepository("products", dyn), t)
 }
 
-func runTests(catRepo CategoryRepository, repo ProductRepository, t *testing.T) {
+func runTests(catRepo repository.CategoryRepository, repo repository.ProductRepository, t *testing.T) {
 
 	cats, err := catRepo.GetAll()
 	if err != nil {
@@ -67,7 +70,7 @@ func runTests(catRepo CategoryRepository, repo ProductRepository, t *testing.T) 
 	})
 }
 
-func testAdd(categories []string, repo ProductRepository, t *testing.T) {
+func testAdd(categories []string, repo repository.ProductRepository, t *testing.T) {
 	id, _ := uuid.NewRandom()
 	p := &store.Product{
 		ID:       id.String(),
@@ -81,7 +84,7 @@ func testAdd(categories []string, repo ProductRepository, t *testing.T) {
 	}
 }
 
-func testGetPaged(categories []string, repo ProductRepository, t *testing.T) {
+func testGetPaged(categories []string, repo repository.ProductRepository, t *testing.T) {
 	dupes := make(map[string]*store.Product)
 	var all []*store.Product
 	last := ""
@@ -125,7 +128,7 @@ func testGetPaged(categories []string, repo ProductRepository, t *testing.T) {
 	}
 }
 
-func testGet(categories []string, repo ProductRepository, t *testing.T) {
+func testGet(categories []string, repo repository.ProductRepository, t *testing.T) {
 	ps, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
 		t.Fatalf("could not get products %v", err)
@@ -146,7 +149,7 @@ func testGet(categories []string, repo ProductRepository, t *testing.T) {
 	}
 }
 
-func testUpsert(categories []string, repo ProductRepository, t *testing.T) {
+func testUpsert(categories []string, repo repository.ProductRepository, t *testing.T) {
 	ps, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
 		t.Fatalf("getting products %v", err)
@@ -177,7 +180,7 @@ func testUpsert(categories []string, repo ProductRepository, t *testing.T) {
 	}
 }
 
-func testDelete(categories []string, repo ProductRepository, t *testing.T) {
+func testDelete(categories []string, repo repository.ProductRepository, t *testing.T) {
 	ps, err := repo.GetPaged(categories[0], 25, "", float64(0))
 	if err != nil {
 		t.Fatalf("could not get products %v", err)

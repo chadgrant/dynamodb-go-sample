@@ -14,10 +14,11 @@ COPY vendor ./vendor/
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY Makefile main.go ./ 
-COPY store ./store/
 COPY tests ./tests/
 RUN cd tests/endpoint && npm install
+COPY schema ./schema/
+COPY Makefile main.go ./ 
+COPY store ./store/
 
 ARG BUILD_HASH
 ARG BUILD_BRANCH
