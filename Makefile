@@ -87,27 +87,26 @@ build-vars: ## Echo's build variables
 	@echo "BUILD_DATE=$(BUILD_DATE)"
 
 tidy: ## Run goimports and go fmt on all *.go files
-ifeq (,$(shell type goimports 2>/dev/null))
-	go get golang.org/x/tools/cmd/goimports
-endif
-	go fmt ./...
-	goimports -w $(shell go list -f {{.Dir}} ./... | grep -v /vendor/)
+	@if ! type "goimports" > /dev/null 2>&1; then \
+		go get -u golang.org/x/tools/cmd/goimports; \
+	fi
+	@go fmt ./...
+	@goimports -w $(shell go list -f {{.Dir}} ./... | grep -v /vendor/)
 
 lint: ## Execute linter
-ifeq (,$(shell type golangci-lint 2>/dev/null))
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-		| sh -s -- -b $(shell go env GOPATH)/bin v1.22.2
-endif
+	@if ! type "golangci-lint" > /dev/null 2>&1; then \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+		| sh -s -- -b $(shell go env GOPATH)/bin v1.22.2; \
+	fi
 	golangci-lint run --timeout=300s --skip-dirs-use-default --exclude="should have comment or be unexported"  ./...
 
 reportcard: ## Display go report card status
-ifeq (,$(shell type gometalinter 2>/dev/null))
-	## has not transitioned to golangci-lint yet
-	cd $(GOPATH); curl -L https://git.io/vp6lP | sh
-endif
-ifeq (,$(shell type goreportcard-cli 2>/dev/null))
-	go get github.com/gojp/goreportcard/cmd/goreportcard-cli
-endif
+	@if ! type "gometalinter" > /dev/null 2>&1; then \
+		cd $(GOPATH); curl -L https://git.io/vp6lP | sh; \
+	fi 
+	@if ! type "goreportcard-cli" > /dev/null 2>&1; then \
+		go get github.com/gojp/goreportcard/cmd/goreportcard-cli; \
+	fi
 	goreportcard-cli
 
 cover: ## Run go code coverage tool

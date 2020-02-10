@@ -16,9 +16,12 @@ RUN go mod download
 
 COPY tests ./tests/
 RUN cd tests/endpoint && npm install
+
 COPY schema ./schema/
 COPY Makefile main.go ./ 
 COPY store ./store/
+
+CMD ["make","test-int"]
 
 ARG BUILD_HASH
 ARG BUILD_BRANCH
@@ -31,8 +34,6 @@ ENV VENDOR="${VENDOR}" GROUP="${GROUP}" \
     SERVICE="${SERVICE}" SERVICE_FRIENDLY="${SERVICE_FRIENDLY}" SERVICE_DESCRIPTION="${SERVICE_DESCRIPTION}" SERVICE_URL="${SERVICE_URL}" \
     BUILD_HASH="${BUILD_HASH}" BUILD_BRANCH="${BUILD_BRANCH}" BUILD_USER="${BUILD_USER}" \
     BUILD_NUMBER="${BUILD_NUMBER}" BUILD_REPO="${BUILD_REPO}" BUILD_DATE="${BUILD_DATE}"
-
-CMD ["make","test-int"]
 
 ## http://label-schema.org/rc1/
 LABEL org.label-schema.schema-version="1.0" \
