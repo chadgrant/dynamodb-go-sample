@@ -1,0 +1,7 @@
+{
+    "$id": "http://schemas.sentex.io/store/product.id.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "product id",
+    "type": "string",
+    "pattern": "^[A-Za-z0-9\\-]{36}$"
+}

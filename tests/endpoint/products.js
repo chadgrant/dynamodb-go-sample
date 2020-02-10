@@ -111,7 +111,7 @@ describe('Products', () => {
         ["name", "description", "category"].forEach(prop => {
             it(`should update ${prop}`, async () => {
                 let p = products[Math.floor(Math.random() * products.length)];
-                await update(p, prop, `updated ${prop}`);
+                await update(p, prop, `updated-${prop}`);
             });
         });
 
@@ -180,7 +180,7 @@ getProducts = (path) => {
     return get(p)
            .expect(200)
            .expect('Content-Type', /json/)
-           .expect('X-Schema','http://products.sentex.io/product.paged.json')
+           .expect('X-Schema','http://schemas.sentex.io/store/product.paged.json')
            .validate();
 }
 
@@ -188,6 +188,6 @@ getProduct = (id) => {
     return get(`/product/${id}`)
             .expect(200)
             .expect('Content-Type', /json/)
-            .expect('X-Schema','http://products.sentex.io/product.json')
+            .expect('X-Schema','http://schemas.sentex.io/store/product.json')
             .validate();
 }

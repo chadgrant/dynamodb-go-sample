@@ -1,0 +1,118 @@
+openapi: 3.0.1
+servers:
+  - url: 'http://localhost:5000'
+info:
+  version: v1
+  title: Products api
+  contact: 
+    name: Chad Grant
+    email: chad.grant@not-publishing.com
+  description: This is a sample api using Go and Dynamo DB
+
+paths:
+  /categories:
+    get:
+      summary: Provides the available categories for the store
+      operationId: list-categories
+      responses:
+        '200':
+          description: this is a desc
+          content: 
+            application/json:
+              schema:
+                $ref: 'http://schemas.sentex.io/store/categories.json'
+
+  /products/{category}:
+    get:
+      summary: Returns products paged for a category
+      parameters:
+        - in: path
+          name: category
+          schema:
+            $ref: 'http://schemas.sentex.io/store/category.json'
+          required: true
+        - in: query
+          name: last
+          description: last id to begin paging from (used with lastprice)
+          schema:
+            $ref: 'http://schemas.sentex.io/store/product.id.json'
+        - in: query
+          name: lastprice
+          description: last price to begin paging from (used with last)
+          schema:
+            type: number
+      operationId: list-products
+      responses:
+        '200':
+          description: this is a desc
+          content: 
+            application/json:
+              schema:
+                $ref: 'http://schemas.sentex.io/store/product.paged.json'
+
+  /products/:
+    post:
+      summary: Adds a product
+      requestBody:
+        description: product to be created/updated
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: 'http://schemas.sentex.io/store/product-base.json'
+      operationId: add-product
+      responses:
+        '201':
+          description: product created
+          headers:
+            Location:
+              description: url of where the product can be retrieved via GET
+              schema:
+                type: string
+        '400':
+          description: error in validation
+        '500':
+          description: internal server error
+
+  /product/{id}:
+    get:
+      summary: gets a product by id
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: 'http://schemas.sentex.io/store/product.id.json'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: 'http://schemas.sentex.io/store/product.json'
+        '404':
+          description: product not found
+
+    put:
+      summary: Upserts a product
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: 'http://schemas.sentex.io/store/product.id.json'
+      requestBody:
+        description: product to be created/updated
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: 'http://schemas.sentex.io/store/product-base.json'
+      operationId: upsert-product
+      responses:
+        '204':
+          description: product updated
+        '400':
+          description: error in validation
+        '500':
+          description: internal server error

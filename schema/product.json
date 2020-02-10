@@ -1,0 +1,19 @@
+{
+  "$id": "http://schemas.sentex.io/store/product.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "allOf": [
+    {
+      "$ref": "http://schemas.sentex.io/store/product-base.json"
+    }
+  ],
+  "description": "a simple product",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "http://schemas.sentex.io/store/product.id.json"
+    }
+  },
+  "required": [
+    "id"
+  ]
+}

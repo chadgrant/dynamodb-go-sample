@@ -52,12 +52,12 @@ func main() {
 	r := mux.NewRouter().StrictSlash(false)
 	r.Use(infra.Recovery)
 
-	gorillaW := func(s string, w func(http.ResponseWriter, *http.Request)) {
+	gorillaW := func(s string, w http.HandlerFunc) {
 		r.HandleFunc(s, w)
 	}
-
-	checker, _, schemas, err := infra.RegisterInfraHandlers(gorillaW)
-	if err != nil {
+	checker := health.NewHealthChecker()
+	schemas := schema.NewRegistry()
+	if err := infra.RegisterInfraHandlers(gorillaW, checker, schemas); err != nil {
 		panic(err)
 	}
 	checker.AddReadiness("dynamo", time.Second*10, dynamo.Health(dyn, time.Second*1, "products", "categories"))
@@ -77,28 +77,28 @@ func main() {
 	ch := handlers.NewCategoryHandler(crepo)
 
 	r.HandleFunc("/categories",
-		validator.Produces("http://products.sentex.io/categories.json", ch.GetAll),
+		validator.Produces("http://schemas.sentex.io/store/categories.json", ch.GetAll),
 	).Methods(http.MethodGet)
 
 	r.HandleFunc("/products/{category:[A-Za-z]+}",
-		validator.Produces("http://products.sentex.io/product.paged.json", ph.GetPaged),
+		validator.Produces("http://schemas.sentex.io/store/product.paged.json", ph.GetPaged),
 	).Methods(http.MethodGet)
 
 	r.HandleFunc("/products/",
-		validator.Consumes("http://products.sentex.io/post.product.json", ph.Add),
+		validator.Consumes("http://schemas.sentex.io/store/product-base.json", ph.Add),
 	).Methods(http.MethodPost)
 
 	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}",
-		validator.Consumes("http://products.sentex.io/put.product.json", ph.Upsert),
+		validator.Consumes("http://schemas.sentex.io/store/product-base.json", ph.Upsert),
 	).Methods(http.MethodPut)
 
 	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}",
-		validator.Produces("http://products.sentex.io/product.json", ph.Get),
+		validator.Produces("http://schemas.sentex.io/store/product.json", ph.Get),
 	).Methods(http.MethodGet)
 
 	r.HandleFunc("/product/{id:[a-z0-9\\-]{36}}", ph.Delete).Methods(http.MethodDelete)
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/")))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./docs/swagger/")))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

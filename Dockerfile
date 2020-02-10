@@ -3,7 +3,7 @@ ARG RUNTIME_IMG=chadgrant/base:alpine-3.11.2
 
 FROM $BUILDER_IMG AS builder
 
-RUN install-deps make
+RUN install-deps make git
 
 WORKDIR /go/src/github.com/$VENDOR/$SERVICE/
 
@@ -25,12 +25,10 @@ ARG BUILD_BRANCH
 ARG BUILD_USER
 ARG BUILD_NUMBER
 ARG BUILD_REPO
-ARG BUILD_DATE
 ENV CGO_ENABLED=0 \
     VENDOR="${VENDOR}" GROUP="${GROUP}" \
     SERVICE="${SERVICE}" SERVICE_FRIENDLY="${SERVICE_FRIENDLY}" SERVICE_DESCRIPTION="${SERVICE_DESCRIPTION}" SERVICE_URL="${SERVICE_URL}" \
-    BUILD_HASH="${BUILD_HASH}" BUILD_BRANCH="${BUILD_BRANCH}" BUILD_USER="${BUILD_USER}" \
-    BUILD_NUMBER="${BUILD_NUMBER}" BUILD_REPO="${BUILD_REPO}" BUILD_DATE="${BUILD_DATE}" 
+    BUILD_HASH="${BUILD_HASH}" BUILD_BRANCH="${BUILD_BRANCH}" BUILD_USER="${BUILD_USER}" BUILD_NUMBER="${BUILD_NUMBER}" BUILD_REPO="${BUILD_REPO}"
 
 RUN BINARY_NAME=goapp OUT_DIR=/go/bin/ make build
 
@@ -56,12 +54,12 @@ ARG SERVICE
 ARG SERVICE_FRIENDLY
 ARG SERVICE_DESCRIPTION
 ARG SERVICE_URL
-ARG BUILD_HASH
 ARG BUILD_BRANCH
 ARG BUILD_USER
 ARG BUILD_NUMBER
 ARG BUILD_REPO
 ARG BUILD_DATE
+ARG BUILD_HASH
 
 ## http://label-schema.org/rc1/
 LABEL org.label-schema.schema-version="1.0" \
@@ -73,7 +71,7 @@ LABEL org.label-schema.schema-version="1.0" \
     org.label-schema.url="${SERVICE_URL}" \
     org.label-schema.version="${BUILD_NUMBER}" \
     org.label-schema.build-user="${BUILD_USER}" \
-    org.label-schema.build-date="${BUILD_DATE}" \
     org.label-schema.vcs-branch="${BUILD_BRANCH}" \
+    org.label-schema.vcs-url="${BUILD_REPO}" \
     org.label-schema.vcs-ref="${BUILD_HASH}" \
-    org.label-schema.vcs-url="${BUILD_REPO}"
+    org.label-schema.build-date="${BUILD_DATE}"

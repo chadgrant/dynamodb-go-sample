@@ -9,7 +9,7 @@ describe('Categories', () => {
        await get("/categories")
             .expect(200)
             .expect('Content-Type', /json/)
-            .expect('X-Schema','http://products.sentex.io/categories.json');
+            .expect('X-Schema','http://schemas.sentex.io/store/categories.json');
     });
 
     it("validates", async () => {

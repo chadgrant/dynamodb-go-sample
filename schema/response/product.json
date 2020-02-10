@@ -1,5 +1,0 @@
-{
-    "$id": "http://products.sentex.io/product.json",
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$ref": "http://schemas.sentex.io/types/product.json"
-}

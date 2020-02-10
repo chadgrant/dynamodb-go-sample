@@ -1,0 +1,24 @@
+{
+    "$id": "http://schemas.sentex.io/store/product.paged.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "a paged results of products",
+    "type": "object",
+    "definitions": {
+        "product": {
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "http://schemas.sentex.io/store/product.json"
+                    }
+                },
+                "next": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "results"
+            ]
+        }
+    }
+}

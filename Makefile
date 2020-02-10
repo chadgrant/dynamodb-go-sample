@@ -53,6 +53,9 @@ help:
 build: ## Builds go binary
 	go build -o $(OUT_DIR)$(BINARY_NAME) -ldflags $(LDFLAGS)
 
+run: ## Runs main.go
+	go run -ldflags $(LDFLAGS) main.go
+
 test: ## Run Tests
 	CGO_ENABLED=1 go test -v -race ./...
 
@@ -197,3 +200,6 @@ docker-push-ui: docker-push-internal-ui ## Builds/Pushes the ui docker image wit
 
 docker-push-internal-%:
 	BUILDKIT=1 docker push $(DOCKER_REGISTRY)/$(IMG):$(DOCKER_TAG)
+
+publish-schema: ## Copies schema to S3
+	aws s3 cp schema s3://schemas.sentex.io/store --recursive	
