@@ -1,5 +1,5 @@
 const request = require('supertest');
-const Ajv = require('Ajv');
+const Ajv = require('ajv');
 const { resolve } = require('path');
 const { readdirSync } = require('fs');
 
