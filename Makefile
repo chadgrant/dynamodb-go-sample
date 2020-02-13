@@ -174,7 +174,7 @@ docker-db: IMG=$(DOCKER_DB_IMG)
 docker-db: docker-internal-db ## Builds the data docker image without docker compose (faster)
 
 docker-internal-%:
-	@BUILDKIT=1 docker build -f $(DOCKER_FILE) \
+	@DOCKER_BUILDKIT=1 docker build -f $(DOCKER_FILE) \
 		--build-arg "VENDOR=$(VENDOR)" \
 		--build-arg "GROUP=$(GROUP)" \
 		--build-arg "SERVICE=$(SERVICE)" \
@@ -198,7 +198,7 @@ docker-push-ui: IMG=$(DOCKER_IMG)
 docker-push-ui: docker-push-internal-ui ## Builds/Pushes the ui docker image without docker compose (faster)
 
 docker-push-internal-%:
-	BUILDKIT=1 docker push $(DOCKER_REGISTRY)/$(IMG):$(DOCKER_TAG)
+	DOCKER_BUILDKIT=1 docker push $(DOCKER_REGISTRY)/$(IMG):$(DOCKER_TAG)
 
 publish-schema: ## Copies schema to S3
 	aws s3 cp schema s3://schemas.sentex.io/store --recursive	
