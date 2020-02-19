@@ -153,7 +153,7 @@ docker-clean: docker-rm ## Stop, remove all containers and remove images
 	-@docker rmi `docker images --format '{{.Repository}}:{{.Tag}}' | grep "${DOCKER_IMG}"` -f
 	-@docker system prune -f --volumes
 
-docker-all: docker docker-tests docker-db docker-ui ## Builds all the docker images without docker compose (faster)
+docker-build: docker docker-tests docker-db docker-ui ## Builds all the docker images without docker compose (faster)
 
 docker: DOCKER_FILE=Dockerfile
 docker: IMG=$(DOCKER_IMG)
