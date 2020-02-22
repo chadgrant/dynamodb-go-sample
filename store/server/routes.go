@@ -8,7 +8,7 @@ import (
 	"github.com/rs/cors"
 )
 
-func (s *server) registerRoutes() error {
+func (s *Server) registerRoutes() error {
 
 	gorillaW := func(str string, w http.HandlerFunc) {
 		s.router.HandleFunc(str, w)

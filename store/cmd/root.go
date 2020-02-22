@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/chadgrant/dynamodb-go-sample/store/server"
 	"github.com/chadgrant/go-http-infra/infra/cmds"
@@ -28,7 +29,22 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 
-		return srv.Serve(cfg.Service.Address)
+		done := make(chan interface{}, 1)
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, os.Interrupt)
+
+		go func(quit <-chan os.Signal, srv *server.Server) {
+			<-quit
+			srv.Shutdown(done)
+		}(quit, srv)
+
+		if err := srv.Serve(done, cfg.Service.Address); err != nil {
+			return err
+		}
+
+		<-done
+		fmt.Println("\nServer Stopped")
+		return nil
 	},
 }
 

@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
@@ -16,7 +18,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type server struct {
+type Server struct {
 	healthChecks health.HealthChecker
 	registry     schema.Registry
 	validator    schema.Validator
@@ -26,6 +28,7 @@ type server struct {
 	config       *Configuration
 	errors       *log.Logger
 	info         *log.Logger
+	server       *http.Server
 }
 
 type handler struct {
@@ -33,9 +36,9 @@ type handler struct {
 	category *handlers.Category
 }
 
-func New(cfg *Configuration) (*server, error) {
+func New(cfg *Configuration) (*Server, error) {
 
-	srv := &server{
+	srv := &Server{
 		config:       cfg,
 		errors:       log.New(os.Stderr, fmt.Sprintf("[%s] ERROR: ", cfg.Service.Name), log.Ldate|log.Ltime|log.Lshortfile),
 		info:         log.New(os.Stdout, fmt.Sprintf("[%s] INFO: ", cfg.Service.Name), log.Ldate|log.Ltime|log.Lshortfile),
@@ -65,8 +68,25 @@ func New(cfg *Configuration) (*server, error) {
 	return srv, nil
 }
 
-func (s *server) Serve(address string) error {
+func (s *Server) Serve(done <-chan interface{}, address string) error {
+	s.server = &http.Server{Addr: address, Handler: s.router}
 	s.info.Printf("Started serving at %s\n", address)
-	s.errors.Fatal(http.ListenAndServe(address, s.router))
+	go func(s *Server) {
+		if err := s.server.ListenAndServe(); err != http.ErrServerClosed {
+			s.errors.Fatal(err)
+		}
+	}(s)
+	<-done
 	return nil
+}
+
+func (s *Server) Shutdown(done chan<- interface{}) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	s.server.SetKeepAlivesEnabled(false)
+	if err := s.server.Shutdown(ctx); err != nil {
+		s.errors.Printf("shutting down server: %v\n", err)
+	}
+	close(done)
 }
