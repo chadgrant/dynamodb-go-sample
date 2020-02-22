@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -14,8 +15,9 @@ import (
 	"github.com/chadgrant/go-http-infra/infra"
 )
 
-type ProductHandler struct {
-	repo repository.ProductRepository
+type Product struct {
+	errors *log.Logger
+	repo   repository.ProductRepository
 }
 
 type pagedProducts struct {
@@ -23,11 +25,11 @@ type pagedProducts struct {
 	Next    string           `json:"next,omitempty"`
 }
 
-func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
-	return &ProductHandler{repo}
+func NewProduct(errors *log.Logger, repo repository.ProductRepository) *Product {
+	return &Product{errors, repo}
 }
 
-func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
+func (h *Product) GetPaged(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cat := vars["category"]
 
@@ -36,6 +38,8 @@ func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 
 	products, err := h.repo.GetPaged(cat, 25, last, lastprice)
 	if err != nil {
+		h.errors.Printf("getting products: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -51,7 +55,7 @@ func (h *ProductHandler) GetPaged(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (h *Product) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -68,7 +72,7 @@ func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) {
 	returnJSON(w, r, p)
 }
 
-func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
+func (h *Product) Add(w http.ResponseWriter, r *http.Request) {
 	var p store.Product
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -78,6 +82,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.NewRandom()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		h.errors.Printf("adding product (new random): %v\n", err)
 		return
 	}
 
@@ -85,6 +90,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		h.errors.Printf("adding product: %v\n", err)
 		return
 	}
 
@@ -92,7 +98,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
+func (h *Product) Upsert(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -106,18 +112,20 @@ func (h *ProductHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.repo.Upsert(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		h.errors.Printf("updating product: %v\n", err)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *Product) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
 	if err := h.repo.Delete(id); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		h.errors.Printf("deleting product: %v\n", err)
 		return
 	}
 

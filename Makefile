@@ -51,10 +51,10 @@ help:
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 build: ## Builds go binary
-	go build -o $(OUT_DIR)$(BINARY_NAME) -ldflags $(LDFLAGS)
+	@go build -o $(OUT_DIR)$(BINARY_NAME) -ldflags $(LDFLAGS)
 
 run: ## Runs main.go
-	go run -ldflags $(LDFLAGS) main.go
+	@go run -ldflags $(LDFLAGS) main.go
 
 test: ## Run Tests
 	CGO_ENABLED=1 go test -v -race ./...

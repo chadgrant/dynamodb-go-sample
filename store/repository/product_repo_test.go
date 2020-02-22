@@ -4,11 +4,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/uuid"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
@@ -33,11 +30,11 @@ func TestDynamoIntegration(t *testing.T) {
 		ep = "http://localhost:8000"
 	}
 
-	dyn := dynamodb.New(session.Must(session.NewSession()), &aws.Config{
-		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials("key", "secret", ""),
-		Endpoint:    aws.String(ep),
-	})
+	dyn := dynamo.New("us-east-1", "key", "secret", ep)
+
+	if err := dynamo.WaitForTables(dyn, time.Second*30, "products"); err != nil {
+		t.Fatalf("waiting on dynamodb %v", err)
+	}
 
 	runTests(dynamo.NewCategoryRepository("categories", dyn), dynamo.NewProductRepository("products", dyn), t)
 }

@@ -21,3 +21,4 @@ vendor/*
 profile.out
 coverage.html
 node_modules
+config.yaml

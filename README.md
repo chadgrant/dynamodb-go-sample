@@ -3,14 +3,23 @@
 [Endpoint Documentation](docs/docs.md) or when running [http://localhost:5000](http://localhost:5000)
 
 ## Building Docker images
+
+Using docker-compose:
+
+```bash
+make compose-build
+```
+
+Using docker (buildkit is faster)
+
 ```bash
 make docker-build
 ```
 
 ## Running
 ```bash
-make docker-build
-make docker-run
+make compose-build
+make compose-up
 curl http://localhost:5000/products/hats
 ```
 
@@ -19,19 +28,19 @@ The UI is available at http://localhost:4000
 
 ## Running infrastructure locally to work/test against
 ```bash
-make docker-infra
+make compose-infra
 make test
 ```
 
 ## Running Integration Tests in Docker Compose
 ```bash
-make docker-build
-make docker-test
+make compose-build
+make compose-test
 ```
 
 ## Running Integration Tests locally
 ```bash
-make docker-infra
+make compose-infra
 
 export TEST_INTEGRATION=1
 go test -v ./...
@@ -47,3 +56,10 @@ make docker-clean
 make get
 make build
 ```
+
+## Dynamodb UI
+```bash
+make compose-up
+```
+
+available at http://localhost:8001

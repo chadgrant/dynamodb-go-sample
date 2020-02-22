@@ -1,3 +1,3 @@
-FROM chadgrant/dynamo:1.0
+FROM chadgrant/dynamo:1.1
 
 COPY data /data

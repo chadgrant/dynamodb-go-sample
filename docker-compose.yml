@@ -78,4 +78,4 @@ services:
     container_name: sample_api_data
     restart: unless-stopped
     ports:
-      - 8000:8000
+      - 8000-8001:8000-8001

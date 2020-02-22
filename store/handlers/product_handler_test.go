@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
@@ -17,7 +19,7 @@ func TestProductHandler(t *testing.T) {
 	c := mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
 	repo := mock.NewProductRepository(c, 100)
 
-	h := NewProductHandler(repo)
+	h := NewProduct(log.New(os.Stderr, "", 0), repo)
 
 	t.Run("Add", func(t *testing.T) {
 		testAdd(h, t)
@@ -63,7 +65,7 @@ func TestProductHandler(t *testing.T) {
 	})
 }
 
-func testAdd(handler *ProductHandler, t *testing.T) {
+func testAdd(handler *Product, t *testing.T) {
 	b := []byte("{ \"name\":\"created from web test\", \"category\": \"hats\",  \"description\": \"nice product from web test\", \"price\": 5.77 }")
 	r, _ := http.NewRequest(http.MethodPost, "products/hats", bytes.NewBuffer(b))
 	w := httptest.NewRecorder()
@@ -75,7 +77,7 @@ func testAdd(handler *ProductHandler, t *testing.T) {
 	}
 }
 
-func testGetPaged(handler *ProductHandler, t *testing.T) {
+func testGetPaged(handler *Product, t *testing.T) {
 	r, _ := http.NewRequest(http.MethodGet, "products/hats", nil)
 	w := httptest.NewRecorder()
 	m := map[string]string{
@@ -100,7 +102,7 @@ func testGetPaged(handler *ProductHandler, t *testing.T) {
 	}
 }
 
-func testGet(id string, handler *ProductHandler, t *testing.T) {
+func testGet(id string, handler *Product, t *testing.T) {
 	r, _ := http.NewRequest(http.MethodGet, "product/"+id, nil)
 	w := httptest.NewRecorder()
 
@@ -132,7 +134,7 @@ func testGet(id string, handler *ProductHandler, t *testing.T) {
 	}
 }
 
-func testUpsert(product *store.Product, handler *ProductHandler, t *testing.T) {
+func testUpsert(product *store.Product, handler *Product, t *testing.T) {
 	copy := product
 	copy.Name = product.Name + " Updated"
 
@@ -182,7 +184,7 @@ func testUpsert(product *store.Product, handler *ProductHandler, t *testing.T) {
 	}
 }
 
-func testDelete(productID string, handler *ProductHandler, t *testing.T) {
+func testDelete(productID string, handler *Product, t *testing.T) {
 	r, _ := http.NewRequest(http.MethodDelete, "product/"+productID, nil)
 	w := httptest.NewRecorder()
 
