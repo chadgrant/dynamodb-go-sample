@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/chadgrant/dynamodb-go-sample/store/server"
 	"github.com/chadgrant/go-http-infra/infra/cmds"
@@ -31,7 +32,7 @@ var rootCmd = &cobra.Command{
 
 		done := make(chan interface{}, 1)
 		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, os.Interrupt)
+		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
 		go func(quit <-chan os.Signal, srv *server.Server) {
 			<-quit
