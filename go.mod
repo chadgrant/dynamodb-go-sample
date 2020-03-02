@@ -3,6 +3,7 @@ module github.com/chadgrant/dynamodb-go-sample
 go 1.13
 
 require (
+	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.26.7
 	github.com/chadgrant/go-http-infra v1.2.3
 	github.com/google/uuid v1.1.1
