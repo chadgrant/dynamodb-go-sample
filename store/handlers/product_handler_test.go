@@ -9,17 +9,47 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
+	"github.com/chadgrant/dynamodb-go-sample/store/service"
 	"github.com/gorilla/mux"
 )
 
-func TestProductHandler(t *testing.T) {
-	c := mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
-	repo := mock.NewProductRepository(c, 100)
+func TestProductHandlerMocks(t *testing.T) {
+	crepo := mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
+	prepo := mock.NewProductRepository(crepo, 100)
 
-	h := NewProduct(log.New(os.Stderr, "", 0), repo)
+	testProductHandler(crepo, prepo, t)
+}
+
+func TestProductHandlerIntegration(t *testing.T) {
+	if len(os.Getenv("TEST_INTEGRATION")) == 0 {
+		t.Log("Skipping integration tests, TEST_INTEGRATION environment variable not set")
+		return
+	}
+
+	ep := os.Getenv("DYNAMO_ENDPOINT")
+	if len(ep) == 0 {
+		ep = "http://localhost:8000"
+	}
+
+	dyn := dynamo.New("us-east-1", "key", "secret", ep)
+
+	if err := dynamo.WaitForTables(dyn, time.Second*30, "products"); err != nil {
+		t.Fatalf("waiting on dynamodb %v", err)
+	}
+
+	testProductHandler(dynamo.NewCategoryRepository("categories", dyn), dynamo.NewProductRepository("products", dyn), t)
+}
+
+func testProductHandler(crepo repository.CategoryRepository, prepo repository.ProductRepository, t *testing.T) {
+	svc := service.NewService(crepo, prepo)
+
+	h := NewProduct(log.New(os.Stderr, "", 0), svc)
 
 	t.Run("Add", func(t *testing.T) {
 		testAdd(h, t)
@@ -30,7 +60,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("Get", func(t *testing.T) {
-		prds, err := repo.GetPaged("hats", 25, "", float64(0))
+		prds, err := prepo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -43,7 +73,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("UpdateProduct", func(t *testing.T) {
-		prds, err := repo.GetPaged("hats", 25, "", float64(0))
+		prds, err := prepo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -54,7 +84,7 @@ func TestProductHandler(t *testing.T) {
 	})
 
 	t.Run("DeleteProduct", func(t *testing.T) {
-		prds, err := repo.GetPaged("hats", 25, "", float64(0))
+		prds, err := prepo.GetPaged("hats", 25, "", float64(0))
 		if err != nil {
 			t.Fatal(err)
 		}

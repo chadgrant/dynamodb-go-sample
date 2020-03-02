@@ -1,31 +1,30 @@
 package metrics
 
 import (
+	cmetrics "github.com/chadgrant/dynamodb-go-sample/store/metrics/category"
+	pmetrics "github.com/chadgrant/dynamodb-go-sample/store/metrics/product"
+	"github.com/chadgrant/dynamodb-go-sample/store/metrics/util"
+
 	kit "github.com/chadgrant/kit/metrics"
-	prov "github.com/chadgrant/kit/metrics/provider"
+	"github.com/chadgrant/kit/metrics/provider"
 )
 
 var AppMetrics = &Metrics{}
 
-const appName = "dynamo-go-sample"
+const appName = "dynamo_go_sample"
 
-type Metrics struct {
-	Repository Repository
-}
-
-type Repository struct {
-	Counters RepositoryCounters
-}
-
-type RepositoryCounters struct {
-	GetCateogries kit.Counter
-}
+type (
+	Metrics struct {
+		TotalErrors kit.Counter
+		Category    cmetrics.Category
+		Product     pmetrics.Product
+	}
+)
 
 func init() {
-	p := prov.NewPrometheusProvider(appName, "repository")
-	categoriesRepoMetrics(p)
-}
+	providers := []provider.Provider{provider.NewExpvarProvider(), provider.NewPrometheusProvider(appName, "category")}
 
-func categoriesRepoMetrics(p prov.Provider) {
-	AppMetrics.Repository.Counters.GetCateogries = p.NewCounter("categories_get")
+	AppMetrics.TotalErrors = util.Counters("errors", providers...)
+	cmetrics.Build(AppMetrics.TotalErrors, &AppMetrics.Category, providers...)
+	pmetrics.Build(AppMetrics.TotalErrors, &AppMetrics.Product, providers...)
 }

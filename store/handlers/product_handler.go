@@ -11,13 +11,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/chadgrant/dynamodb-go-sample/store"
-	"github.com/chadgrant/dynamodb-go-sample/store/repository"
+	"github.com/chadgrant/dynamodb-go-sample/store/service"
 	"github.com/chadgrant/go-http-infra/infra"
 )
 
 type Product struct {
 	errors *log.Logger
-	repo   repository.ProductRepository
+	svc    service.Service
 }
 
 type pagedProducts struct {
@@ -25,8 +25,8 @@ type pagedProducts struct {
 	Next    string           `json:"next,omitempty"`
 }
 
-func NewProduct(errors *log.Logger, repo repository.ProductRepository) *Product {
-	return &Product{errors, repo}
+func NewProduct(errors *log.Logger, svc service.Service) *Product {
+	return &Product{errors, svc}
 }
 
 func (h *Product) GetPaged(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func (h *Product) GetPaged(w http.ResponseWriter, r *http.Request) {
 	last := param(r, "last", "")
 	lastprice, _ := strconv.ParseFloat(param(r, "lastprice", "0"), 2)
 
-	products, err := h.repo.GetPaged(cat, 25, last, lastprice)
+	products, err := h.svc.ProductsPaged(cat, 25, last, lastprice)
 	if err != nil {
 		h.errors.Printf("getting products: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -59,7 +59,7 @@ func (h *Product) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	p, err := h.repo.Get(id)
+	p, err := h.svc.ProductById(id)
 	if err != nil {
 		return
 	}
@@ -88,7 +88,7 @@ func (h *Product) Add(w http.ResponseWriter, r *http.Request) {
 
 	p.ID = id.String()
 
-	if err := h.repo.Upsert(&p); err != nil {
+	if err := h.svc.AddProduct(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		h.errors.Printf("adding product: %v\n", err)
 		return
@@ -110,7 +110,7 @@ func (h *Product) Upsert(w http.ResponseWriter, r *http.Request) {
 
 	p.ID = id
 
-	if err := h.repo.Upsert(&p); err != nil {
+	if err := h.svc.UpdateProduct(&p); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		h.errors.Printf("updating product: %v\n", err)
 		return
@@ -123,7 +123,7 @@ func (h *Product) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if err := h.repo.Delete(id); err != nil {
+	if err := h.svc.DeleteProduct(id); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		h.errors.Printf("deleting product: %v\n", err)
 		return

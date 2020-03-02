@@ -1,6 +1,7 @@
 package server
 
 import (
+	"expvar"
 	"net/http"
 
 	"github.com/chadgrant/go-http-infra/infra"
@@ -30,6 +31,8 @@ func (s *Server) registerRoutes() error {
 	r := s.router
 	ph := s.handlers.product
 	ch := s.handlers.category
+
+	r.Handle("/debug/vars", expvar.Handler())
 
 	r.HandleFunc("/categories",
 		v.Produces("http://schemas.sentex.io/store/categories.json", ch.GetAll),

@@ -14,12 +14,12 @@ import (
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
 )
 
-func TestMock(t *testing.T) {
+func TestProductRepoMock(t *testing.T) {
 	c := mock.NewCategoryRepository("Hats", "Shirts", "Pants", "Shoes", "Ties", "Belts", "Socks", "Accessory")
 	runTests(c, mock.NewProductRepository(c, 100), t)
 }
 
-func TestDynamoIntegration(t *testing.T) {
+func TestProductRepoDynamoIntegration(t *testing.T) {
 	if len(os.Getenv("TEST_INTEGRATION")) == 0 {
 		t.Log("Skipping integration tests, TEST_INTEGRATION environment variable not set")
 		return

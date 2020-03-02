@@ -1,4 +1,4 @@
-ARG BUILDER_IMG=chadgrant/base:golang-1.13.5-alpine
+ARG BUILDER_IMG=chadgrant/base:golang-1.14-alpine
 ARG RUNTIME_IMG=chadgrant/base:alpine-3.11.2
 
 FROM $BUILDER_IMG AS builder
@@ -7,7 +7,6 @@ RUN install-deps make git
 
 WORKDIR /go/src/github.com/$VENDOR/$SERVICE/
 
-COPY vendor ./vendor/ 
 COPY go.mod go.sum ./
 RUN go mod download
 

@@ -10,8 +10,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
+	"github.com/chadgrant/dynamodb-go-sample/store/metrics"
+	"github.com/chadgrant/dynamodb-go-sample/store/repository"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/dynamo"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository/mock"
+	"github.com/chadgrant/dynamodb-go-sample/store/service"
 	"github.com/chadgrant/go-http-infra/infra"
 	"github.com/chadgrant/go-http-infra/infra/health"
 	"github.com/chadgrant/go-http-infra/infra/schema"
@@ -57,9 +60,15 @@ func New(cfg *Configuration) (*Server, error) {
 		repo = mock.NewProductRepository(crepo, 100)
 	}
 
+	//wrap with metrics
+	crepo = repository.NewMetricsCategoryRepository(&metrics.AppMetrics.Category.Repository, crepo)
+	repo = repository.NewMetricsProductRepository(&metrics.AppMetrics.Product.Repository, repo)
+
+	svc := service.NewServiceMetrics(metrics.AppMetrics, service.NewService(crepo, repo))
+
 	srv.handlers = &handler{
-		product:  handlers.NewProduct(srv.errors, repo),
-		category: handlers.NewCategory(srv.errors, crepo),
+		product:  handlers.NewProduct(srv.errors, svc),
+		category: handlers.NewCategory(srv.errors, svc),
 	}
 	if err := srv.registerRoutes(); err != nil {
 		return nil, err

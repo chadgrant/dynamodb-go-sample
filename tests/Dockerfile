@@ -1,4 +1,4 @@
-ARG RUNTIME_IMG=chadgrant/golang-testing:1.13.5-buster
+ARG RUNTIME_IMG=chadgrant/golang-testing:1.14-buster
 
 FROM $RUNTIME_IMG
 ARG GROUP
@@ -10,7 +10,6 @@ ARG SERVICE_URL
 
 WORKDIR /go/src/github.com/${VENDOR}/${SERVICE}
 
-COPY vendor ./vendor/
 COPY go.mod go.sum ./
 RUN go mod download
 
