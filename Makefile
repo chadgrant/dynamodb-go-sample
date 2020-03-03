@@ -126,10 +126,16 @@ compose-push: docker-build ## Push the docker images with docker-compose
 compose-infra: ## Start the docker infrastructure databases, etc with docker-compose
 	@docker-compose up --no-start
 	@docker-compose start data
+	@docker-compose start prometheus
+	@docker-compose start prometheus_gateway
+	@docker-compose start grafana	
 
 compose-infra-api: ## Start the docker infrastructure databases and the API etc with docker-compose
 	@docker-compose up --no-start
 	@docker-compose start data
+	@docker-compose start prometheus
+	@docker-compose start prometheus_gateway
+	@docker-compose start grafana
 	@docker-compose start api
 
 compose-up: ## Start all docker containers in docker-compose.yml

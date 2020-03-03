@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/chadgrant/dynamodb-go-sample/store/handlers"
 	"github.com/chadgrant/dynamodb-go-sample/store/metrics"
 	"github.com/chadgrant/dynamodb-go-sample/store/repository"
@@ -18,7 +17,10 @@ import (
 	"github.com/chadgrant/go-http-infra/infra"
 	"github.com/chadgrant/go-http-infra/infra/health"
 	"github.com/chadgrant/go-http-infra/infra/schema"
+
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/push"
 )
 
 type Server struct {
@@ -85,7 +87,27 @@ func (s *Server) Serve(done <-chan interface{}, address string) error {
 			s.errors.Fatal(err)
 		}
 	}(s)
+
+	pdone := make(chan interface{}, 1)
+	if s.config.Prometheus.Push.Enabled && len(s.config.Prometheus.Push.Host) > 0 {
+		pusher := push.New(s.config.Prometheus.Push.Host, s.config.Prometheus.Push.Job)
+		go func(done <-chan interface{}, duration time.Duration, pusher *push.Pusher) {
+			ticker := time.NewTicker(duration)
+			for {
+				select {
+				case <-done:
+					return
+				case <-ticker.C:
+					if err := pusher.Push(); err != nil {
+						s.errors.Printf("pushing to prometheus: %v\n", err)
+					}
+				}
+			}
+		}(pdone, s.config.Prometheus.Push.Interval, pusher)
+	}
+
 	<-done
+	pdone <- true
 	return nil
 }
 

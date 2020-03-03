@@ -6,6 +6,8 @@ import (
 
 	"github.com/chadgrant/go-http-infra/infra"
 	"github.com/chadgrant/go-http-infra/infra/schema"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 )
 
@@ -33,6 +35,7 @@ func (s *Server) registerRoutes() error {
 	ch := s.handlers.category
 
 	r.Handle("/debug/vars", expvar.Handler())
+	r.Handle("/metrics", promhttp.Handler())
 
 	r.HandleFunc("/categories",
 		v.Produces("http://schemas.sentex.io/store/categories.json", ch.GetAll),

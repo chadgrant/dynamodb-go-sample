@@ -16,6 +16,7 @@ type (
 		Dynamo       Dynamo
 		HealthChecks HealthConfiguration
 		UseMocks     bool
+		Prometheus   Prometheus
 	}
 
 	Service struct {
@@ -58,6 +59,15 @@ type (
 		Products   string
 		Categories string
 	}
+
+	Prometheus struct {
+		Push struct {
+			Enabled  bool
+			Host     string
+			Interval time.Duration
+			Job      string
+		}
+	}
 )
 
 func Load(cfgFile string) (*Configuration, error) {
@@ -96,6 +106,15 @@ func init() {
 		"tables": map[string]interface{}{
 			"products":   "products",
 			"categories": "categories",
+		},
+	})
+
+	viper.SetDefault("prometheus", map[string]interface{}{
+		"push": map[string]interface{}{
+			"enabled":  false,
+			"host":     "http://localhost:9091",
+			"job":      "dynamodb_go_sample",
+			"interval": "3s",
 		},
 	})
 

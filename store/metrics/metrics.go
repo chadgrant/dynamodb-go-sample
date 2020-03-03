@@ -22,7 +22,7 @@ type (
 )
 
 func init() {
-	providers := []provider.Provider{provider.NewExpvarProvider(), provider.NewPrometheusProvider(appName, "category")}
+	providers := []provider.Provider{provider.NewExpvarProvider(), provider.NewPrometheusProvider(appName, "service")}
 
 	AppMetrics.TotalErrors = util.Counters("errors", providers...)
 	cmetrics.Build(AppMetrics.TotalErrors, &AppMetrics.Category, providers...)
