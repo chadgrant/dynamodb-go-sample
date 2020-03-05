@@ -6,6 +6,6 @@ scrape_configs:
   - job_name: 'dynamodb_go_sample'
     static_configs:
       - targets: [
-      'api:5000',
+      'api:8080',
       'prometheus_gateway:9091'
       ]

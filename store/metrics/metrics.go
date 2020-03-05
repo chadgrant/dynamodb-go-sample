@@ -9,22 +9,26 @@ import (
 	"github.com/chadgrant/kit/metrics/provider"
 )
 
-var AppMetrics = &Metrics{}
+var appMetrics = &Metrics{}
 
-const appName = "dynamo_go_sample"
+type Metrics struct {
+	TotalErrors kit.Counter
+	Category    cmetrics.Category
+	Product     pmetrics.Product
+}
 
-type (
-	Metrics struct {
-		TotalErrors kit.Counter
-		Category    cmetrics.Category
-		Product     pmetrics.Product
-	}
-)
+func New() *Metrics {
+	// intentional singleton
+	return appMetrics
+}
 
 func init() {
-	providers := []provider.Provider{provider.NewExpvarProvider(), provider.NewPrometheusProvider(appName, "service")}
+	providers := []provider.Provider{
+		provider.NewExpvarProvider(),
+		provider.NewPrometheusProvider("sample", "service"),
+	}
 
-	AppMetrics.TotalErrors = util.Counters("errors", providers...)
-	cmetrics.Build(AppMetrics.TotalErrors, &AppMetrics.Category, providers...)
-	pmetrics.Build(AppMetrics.TotalErrors, &AppMetrics.Product, providers...)
+	appMetrics.TotalErrors = util.Counters("errors", providers...)
+	cmetrics.Build(appMetrics.TotalErrors, &appMetrics.Category, providers...)
+	pmetrics.Build(appMetrics.TotalErrors, &appMetrics.Product, providers...)
 }

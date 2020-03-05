@@ -63,10 +63,11 @@ func New(cfg *Configuration) (*Server, error) {
 	}
 
 	//wrap with metrics
-	crepo = repository.NewMetricsCategoryRepository(&metrics.AppMetrics.Category.Repository, crepo)
-	repo = repository.NewMetricsProductRepository(&metrics.AppMetrics.Product.Repository, repo)
+	m := metrics.New()
+	crepo = repository.NewMetricsCategoryRepository(&m.Category.Repository, crepo)
+	repo = repository.NewMetricsProductRepository(&m.Product.Repository, repo)
 
-	svc := service.NewServiceMetrics(metrics.AppMetrics, service.NewService(crepo, repo))
+	svc := service.NewServiceMetrics(m, service.NewService(crepo, repo))
 
 	srv.handlers = &handler{
 		product:  handlers.NewProduct(srv.errors, svc),
