@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.27.0
+	github.com/aws/aws-sdk-go v1.34.0
 	github.com/chadgrant/go-http-infra v1.2.3
 	github.com/chadgrant/kit v1.0.1
 	github.com/go-kit/kit v0.9.0
@@ -16,7 +16,8 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.4.0 // indirect
-	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa // indirect
-	golang.org/x/text v0.3.2 // indirect
+	github.com/stretchr/testify v1.5.1 // indirect
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
+	golang.org/x/text v0.3.3 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
